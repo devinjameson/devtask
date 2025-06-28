@@ -1,20 +1,16 @@
 ## Getting Started
 
-Install and start PostgreSQL locally:
-
-```sh
-brew install postgresql@15
-brew services start postgresql@15
-createdb devtask
-```
-
 Set up environment variables:
 
 ```sh
 cp .env.example .env
 ```
 
-Push the Prisma schema and seed the database:
+In `.env`, replace `<DB_PASSWORD>` with your actual Supabase database password.
+
+The `SUPABASE_SERVICE_ROLE_KEY` is optional and should only be set on the server.
+
+Push the Prisma schema and seed the Supabase database:
 
 ```sh
 pnpm prisma db push
