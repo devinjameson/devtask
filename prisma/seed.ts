@@ -1,6 +1,6 @@
-import { PrismaClient } from '@/generated/prisma';
+import { PrismaClient } from '@/generated/prisma'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 async function main() {
   const user = await prisma.user.create({
@@ -13,21 +13,123 @@ async function main() {
         },
       },
     },
-  });
+    include: {
+      profiles: true,
+    },
+  })
+
+  const profile = user.profiles[0]
+
+  if (!profile) {
+    throw new Error('User missing profile')
+  }
 
   await prisma.status.createMany({
     data: [{ name: 'Backlog' }, { name: 'In Progress' }, { name: 'Done' }],
     skipDuplicates: true,
-  });
+  })
 
-  console.log('🌱 Seed complete:', user.email);
+  const statuses = await prisma.status.findMany()
+
+  const [backlog, inProgress, done] = [
+    statuses.find((s) => s.name === 'Backlog')!,
+    statuses.find((s) => s.name === 'In Progress')!,
+    statuses.find((s) => s.name === 'Done')!,
+  ]
+
+  await prisma.category.createMany({
+    data: [
+      { name: 'General', profileId: profile.id },
+      { name: 'Coffee', profileId: profile.id },
+      { name: 'Coding', profileId: profile.id },
+    ],
+    skipDuplicates: true,
+  })
+
+  const categories = await prisma.category.findMany({
+    where: { profileId: profile.id },
+  })
+
+  const getCategoryId = (name: string) => categories.find((c) => c.name === name)?.id ?? null
+
+  const backlogTasks = () => {
+    const statusId = backlog.id
+
+    return [
+      {
+        title: 'Dial in new Sey',
+        description: 'Tweak grind size?',
+        profileId: profile.id,
+        statusId,
+        categoryId: getCategoryId('Coffee'),
+        order: 0,
+      },
+      {
+        title: 'Tidy up desk',
+        description: 'Decide on new spots for various decorative items',
+        profileId: profile.id,
+        statusId,
+        categoryId: getCategoryId('General'),
+        order: 1,
+      },
+      {
+        title: 'Organize stickers',
+        description: 'Sort by vibe, not category.',
+        profileId: profile.id,
+        statusId,
+        categoryId: getCategoryId('General'),
+        order: 2,
+      },
+    ]
+  }
+
+  const inProgressTasks = () => {
+    const statusId = inProgress.id
+
+    return [
+      {
+        title: 'Update Neovim config',
+        description: 'Reorganize plugins',
+        profileId: profile.id,
+        statusId,
+        categoryId: getCategoryId('Coding'),
+        order: 0,
+      },
+    ]
+  }
+
+  const doneTasks = () => {
+    const statusId = done.id
+
+    return [
+      {
+        title: 'Call Mom',
+        description: 'Crucial',
+        profileId: profile.id,
+        statusId,
+        categoryId: getCategoryId('General'),
+        order: 0,
+      },
+    ]
+  }
+
+  await prisma.task.createMany({
+    data: [...backlogTasks(), ...inProgressTasks(), ...doneTasks()],
+  })
+
+  console.log('🌱 Seed complete:', {
+    user: user.email,
+    profile: profile.name,
+    statuses: statuses.map((s) => s.name),
+    categories: categories.map((c) => c.name),
+  })
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seed failed', e);
-    process.exit(1);
+    console.error('❌ Seed failed', e)
+    process.exit(1)
   })
   .finally(async () => {
-    await prisma.$disconnect();
-  });
+    await prisma.$disconnect()
+  })
