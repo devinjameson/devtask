@@ -10,6 +10,9 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write ."
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@prisma/client": "^6.10.1",
     "@tanstack/react-query": "^5.81.5",
