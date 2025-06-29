@@ -10,7 +10,7 @@ import { Strong, Text, TextLink } from '@/ui/catalyst/text'
 import Spinner from '@/ui/Spinner'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { CreateUserResponse } from '../api/user/create'
+import { CreateUserResponse } from '../api/user/create/route'
 
 export default function SignUp() {
   const router = useRouter()
