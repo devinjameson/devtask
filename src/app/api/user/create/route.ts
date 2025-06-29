@@ -3,23 +3,16 @@ import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { User } from '@/generated/prisma'
+import { ApiResult } from '@/lib/api/apiResult'
 
 export type CreateUserBody = {
   firstName: string
   lastName: string
 }
 
-export type CreateUserResponse =
-  | {
-      success: true
-      user: User
-    }
-  | {
-      success: false
-      error: string
-    }
+export type CreateUserResult = ApiResult<{ user: User }>
 
-export async function POST(req: NextRequest): Promise<NextResponse<CreateUserResponse>> {
+export async function POST(req: NextRequest): Promise<NextResponse<CreateUserResult>> {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
@@ -56,8 +49,24 @@ export async function POST(req: NextRequest): Promise<NextResponse<CreateUserRes
       },
     })
 
-    return NextResponse.json({ success: true, user: created }, { status: 201 })
+    return NextResponse.json(
+      {
+        success: true,
+        data: { user: created },
+      },
+      {
+        status: 201,
+      },
+    )
   } catch {
-    return NextResponse.json({ success: false, error: 'Failed to create user' }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to create user',
+      },
+      {
+        status: 500,
+      },
+    )
   }
 }

@@ -10,7 +10,8 @@ import { Strong, Text, TextLink } from '@/ui/catalyst/text'
 import Spinner from '@/ui/Spinner'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { CreateUserResponse } from '../api/user/create/route'
+import { CreateUserBody, CreateUserResult } from '../api/user/create/route'
+import { fetchJson } from '@/lib/api/fetchJson'
 
 export default function SignUp() {
   const router = useRouter()
@@ -40,16 +41,21 @@ export default function SignUp() {
       return
     }
 
-    const res = await fetch('/api/user/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ firstName, lastName }),
-    })
+    const body: CreateUserBody = {
+      firstName,
+      lastName,
+    }
 
-    const data: CreateUserResponse = await res.json()
+    const result = await fetchJson<CreateUserResult>(() =>
+      fetch('/api/user/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }),
+    )
 
-    if (!data.success) {
-      setError(data.error)
+    if (!result.success) {
+      setError(result.error)
       setLoading(false)
       return
     }
