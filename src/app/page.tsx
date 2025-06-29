@@ -16,7 +16,7 @@ export default function Page() {
   useEffect(() => {
     if (AsyncResult.isOk(maybeSession)) {
       Option.match(maybeSession.value, {
-        onNone: () => router.push('/login'),
+        onNone: () => router.push('/log-in'),
         onSome: () => {},
       })
     }
