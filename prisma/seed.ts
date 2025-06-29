@@ -27,7 +27,8 @@ async function main() {
     data: {
       id: authUser.id,
       email: authUser.email!,
-      name: 'Demo User',
+      firstName: 'Demo',
+      lastName: 'User',
       profiles: {
         create: {
           name: 'Home',

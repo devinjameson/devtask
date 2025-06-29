@@ -8,7 +8,7 @@ echo "🚀 Restarting Supabase..."
 supabase start
 
 echo "🧬 Running Prisma migrations..."
-pnpm prisma migrate dev --name init
+pnpm prisma migrate dev
 
 echo "🌱 Seeding database..."
 pnpm prisma db seed
