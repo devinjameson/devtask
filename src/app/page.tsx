@@ -3,10 +3,11 @@
 import { Heading } from '@/ui/catalyst/heading'
 import Spinner from '@/ui/Spinner'
 import { AsyncResult } from '@/lib'
-import { useSession } from '@/lib/auth/useSessionStatus'
+import { useSession } from '@/lib/auth/useSession'
 import { Option } from 'effect'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import App from '@/features/app/App'
 
 export default function Page() {
   const router = useRouter()
@@ -31,7 +32,7 @@ export default function Page() {
                 <Spinner />
               </FullScreenCenter>
             ),
-            onSome: () => <div>App</div>,
+            onSome: () => <App />,
           })
         },
         onErr: (error) => (

@@ -1,6 +1,6 @@
 'use client'
 
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/client'
 import { AuthLayout } from '@/ui/catalyst/auth-layout'
 import { Button } from '@/ui/catalyst/button'
 import { Field, Label } from '@/ui/catalyst/fieldset'
