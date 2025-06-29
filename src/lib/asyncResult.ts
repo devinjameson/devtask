@@ -1,3 +1,5 @@
+import { UseQueryResult } from '@tanstack/react-query'
+
 export type AsyncResult<T, U = unknown> = Ok<T> | Err<U> | Loading
 export type Ok<T> = { _tag: 'Ok'; value: T }
 export type Err<U> = { _tag: 'Err'; value: U }
@@ -31,5 +33,15 @@ export const match = <T, U, V>(
       return onErr(result.value)
     case 'Loading':
       return onLoading()
+  }
+}
+
+export const fromQueryResult = <T, U>(queryResult: UseQueryResult<T, U>): AsyncResult<T, U> => {
+  if (queryResult.isLoading) {
+    return loading<T, U>()
+  } else if (queryResult.isError) {
+    return err<U, T>(queryResult.error as U)
+  } else {
+    return ok<T, U>(queryResult.data as T)
   }
 }
