@@ -1,11 +1,32 @@
 import { PrismaClient } from '@/generated/prisma'
+import { createClient } from '@supabase/supabase-js'
 
 const prisma = new PrismaClient()
 
 async function main() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
+
+  const {
+    data: { user: authUser },
+    error,
+  } = await supabase.auth.admin.createUser({
+    email: 'demo@example.com',
+    password: 'password123',
+    email_confirm: true,
+  })
+
+  if (error || !authUser?.id) {
+    console.error('Error creating Supabase user:', error)
+    throw new Error('Failed to create Supabase user')
+  }
+
   const user = await prisma.user.create({
     data: {
-      email: 'demo@example.com',
+      id: authUser.id,
+      email: authUser.email!,
       name: 'Demo User',
       profiles: {
         create: {

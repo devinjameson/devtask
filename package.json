@@ -9,7 +9,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset:local": "bash scripts/db-reset-local.sh"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
