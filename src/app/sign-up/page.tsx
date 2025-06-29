@@ -10,6 +10,7 @@ import { Strong, Text, TextLink } from '@/ui/catalyst/text'
 import Spinner from '@/ui/Spinner'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { CreateUserResponse } from '../api/user/create'
 
 export default function SignUp() {
   const router = useRouter()
@@ -23,20 +24,37 @@ export default function SignUp() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (!firstName || !lastName || !email || !password) {
+      setError('All fields are required')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
-    const { error: authError } = await supabase.auth.signUp({
-      email,
-      password,
+    const { data: authUser, error: authError } = await supabase.auth.signUp({ email, password })
+
+    if (authError || !authUser.user) {
+      setError(authError?.message ?? 'Something went wrong')
+      setLoading(false)
+      return
+    }
+
+    const res = await fetch('/api/user/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ firstName, lastName }),
     })
 
-    if (authError) {
-      setError(authError.message)
+    const data: CreateUserResponse = await res.json()
+
+    if (!data.success) {
+      setError(data.error)
       setLoading(false)
-    } else {
-      router.push('/')
+      return
     }
+
+    router.push('/')
   }
 
   return (
@@ -48,12 +66,18 @@ export default function SignUp() {
           <Input
             name="firstName"
             value={firstName}
+            disabled={loading}
             onChange={(e) => setFirstName(e.target.value)}
           />
         </Field>
         <Field>
           <Label>Last name</Label>
-          <Input name="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+          <Input
+            name="lastName"
+            value={lastName}
+            disabled={loading}
+            onChange={(e) => setLastName(e.target.value)}
+          />
         </Field>
         <Field>
           <Label>Email</Label>
@@ -61,6 +85,7 @@ export default function SignUp() {
             type="email"
             name="email"
             value={email}
+            disabled={loading}
             onChange={(e) => setEmail(e.target.value)}
           />
         </Field>
@@ -71,16 +96,17 @@ export default function SignUp() {
             name="password"
             autoComplete="new-password"
             value={password}
+            disabled={loading}
             onChange={(e) => setPassword(e.target.value)}
           />
         </Field>
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? <Spinner /> : 'Create account'}
         </Button>
-        {error && <Text className="text-red-500">{error}</Text>}
+        {error && <Text className="text-red-500 dark:text-red-500">{error}</Text>}
         <Text>
           Already have an account?{' '}
-          <TextLink href="#">
+          <TextLink href="/log-in">
             <Strong>Sign in</Strong>
           </TextLink>
         </Text>
