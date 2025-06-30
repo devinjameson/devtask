@@ -47,7 +47,11 @@ async function main() {
   }
 
   await prisma.status.createMany({
-    data: [{ name: 'Backlog' }, { name: 'In Progress' }, { name: 'Done' }],
+    data: [
+      { name: 'Backlog', profileId: profile.id },
+      { name: 'In Progress', profileId: profile.id },
+      { name: 'Done', profileId: profile.id },
+    ],
     skipDuplicates: true,
   })
 

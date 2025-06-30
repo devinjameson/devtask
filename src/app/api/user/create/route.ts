@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { User } from '@/generated/prisma'
+import { Prisma } from '@/generated/prisma'
 import { ApiResult } from '@/lib/api/apiResult'
 
 export type CreateUserBody = {
@@ -10,7 +10,13 @@ export type CreateUserBody = {
   lastName: string
 }
 
-export type CreateUserResult = ApiResult<{ user: User }>
+export type UserWithProfiles = Prisma.UserGetPayload<{
+  include: {
+    profiles: true
+  }
+}>
+export type CreateUserResponseData = { user: UserWithProfiles }
+export type CreateUserResult = ApiResult<CreateUserResponseData>
 
 export async function POST(req: NextRequest): Promise<NextResponse<CreateUserResult>> {
   const cookieStore = await cookies()
@@ -35,7 +41,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<CreateUserRes
       return NextResponse.json({ success: false, error: 'User already exists' }, { status: 400 })
     }
 
-    const created = await prisma.user.create({
+    const createdUser = await prisma.user.create({
       data: {
         id: user.id,
         email: user.email!,
@@ -49,10 +55,21 @@ export async function POST(req: NextRequest): Promise<NextResponse<CreateUserRes
       },
     })
 
+    const userWithProfiles = await prisma.user.findUnique({
+      where: { id: createdUser.id },
+      include: {
+        profiles: true,
+      },
+    })
+
+    if (!userWithProfiles) {
+      return NextResponse.json({ success: false, error: 'Failed to create user' }, { status: 500 })
+    }
+
     return NextResponse.json(
       {
         success: true,
-        data: { user: created },
+        data: { user: userWithProfiles },
       },
       {
         status: 201,
