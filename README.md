@@ -1,23 +1,28 @@
+# devtask
+
 ## Getting Started
 
-Set up environment variables:
+### 1. Set up environment variables
 
 ```sh
-cp .env.example .env
+cp .env.local.example .env
 ```
 
-In `.env`, replace `<DB_PASSWORD>` with your actual Supabase database password.
+Replace the placeholder values in `.env` with your actual Supabase project credentials. You'll see these when you run `supabase start`.
 
-The `SUPABASE_SERVICE_ROLE_KEY` is optional and should only be set on the server.
+---
 
-Push the Prisma schema and seed the Supabase database:
+### 2. Reset and seed your local Supabase database
+
+This will stop any running Supabase instance, wipe all local data, restart it, apply Prisma migrations, and seed initial data:
 
 ```sh
-pnpm prisma db push
-pnpm prisma db seed
+pnpm db:reset:local
 ```
 
-Start the development server:
+---
+
+### 3. Start the development server
 
 ```sh
 pnpm dev
