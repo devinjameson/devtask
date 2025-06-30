@@ -10,6 +10,7 @@ import { useEnsureActiveProfile } from './useEnsureActiveProfile'
 import { Button } from '@/ui/catalyst/button'
 import { supabase } from '@/lib/supabase/client'
 import { ACTIVE_PROFILE_COOKIE } from '@/lib/constants'
+import { pipe } from 'effect'
 
 export default function App() {
   useEnsureActiveProfile()
@@ -22,13 +23,17 @@ export default function App() {
   const statusesQueryResult = useStatuses({
     enabled: isStatusesQueryEnabled,
   })
-
-  console.log(activeProfileId)
-
   const asyncStatuses = AsyncResult.fromQueryResult(statusesQueryResult)
 
   const profilesQueryResult = useProfiles()
   const asyncProfiles = AsyncResult.fromQueryResult(profilesQueryResult)
+
+  const combined = pipe(
+    asyncTasks,
+    AsyncResult.combine(asyncStatuses),
+    AsyncResult.combine(asyncProfiles),
+    AsyncResult.map(([profiles, [statuses, tasks]]) => [tasks, statuses, profiles] as const),
+  )
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -36,8 +41,8 @@ export default function App() {
 
   return (
     <div className="space-y-4 p-4">
-      {AsyncResult.match(asyncTasks, {
-        onOk: (tasks) => <TaskBoard tasks={tasks} />,
+      {AsyncResult.match(combined, {
+        onOk: ([tasks]) => <TaskBoard tasks={tasks} />,
         onLoading: () => <div className="text-gray-500">Loading tasks...</div>,
         onErr: (error) => <div className="text-red-600">Error loading tasks: {error.message}</div>,
       })}

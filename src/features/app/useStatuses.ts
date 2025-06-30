@@ -13,7 +13,9 @@ const fetchStatuses = async (): Promise<Status[]> => {
   return result.data.statuses
 }
 
-export function useStatuses(options: Omit<UseQueryOptions, 'queryKey' | 'queryFn'> = {}) {
+export function useStatuses(
+  options: Omit<UseQueryOptions<Status[], Error>, 'queryKey' | 'queryFn'> = {},
+) {
   return useQuery({
     queryKey: ['statuses'],
     queryFn: fetchStatuses,

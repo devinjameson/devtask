@@ -36,6 +36,18 @@ export const match = <T, U, V>(
   }
 }
 
+export const map =
+  <T, U, V>(f: (value: T) => V) =>
+  (result: AsyncResult<T, U>): AsyncResult<V, U> => {
+    if (isOk(result)) {
+      return ok<V, U>(f(result.value))
+    } else if (isErr(result)) {
+      return err<U, V>(result.value)
+    } else {
+      return loading<V, U>()
+    }
+  }
+
 export const fromQueryResult = <T, U>(queryResult: UseQueryResult<T, U>): AsyncResult<T, U> => {
   if (queryResult.isLoading) {
     return loading<T, U>()
@@ -45,3 +57,21 @@ export const fromQueryResult = <T, U>(queryResult: UseQueryResult<T, U>): AsyncR
     return ok<T, U>(queryResult.data as T)
   }
 }
+
+export const combine =
+  <T, U>(a: AsyncResult<T, U>) =>
+  <V, W>(b: AsyncResult<V, W>): AsyncResult<[T, V], U | W> => {
+    if (isLoading(a) || isLoading(b)) {
+      return loading<[T, V], U | W>()
+    }
+
+    if (isErr(a)) {
+      return err<U | W, [T, V]>(a.value)
+    }
+
+    if (isErr(b)) {
+      return err<U | W, [T, V]>(b.value)
+    }
+
+    return ok<[T, V], U | W>([a.value, b.value])
+  }
