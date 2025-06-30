@@ -42,7 +42,7 @@ export default function App() {
   return (
     <div className="space-y-4 p-4">
       {AsyncResult.match(combined, {
-        onOk: ([tasks]) => <TaskBoard tasks={tasks} />,
+        onOk: ([tasks, statuses]) => <TaskBoard tasks={tasks} statuses={statuses} />,
         onLoading: () => <div className="text-gray-500">Loading tasks...</div>,
         onErr: (error) => <div className="text-red-600">Error loading tasks: {error.message}</div>,
       })}
