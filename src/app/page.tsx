@@ -23,16 +23,16 @@ export default function Page() {
   }, [maybeSession, router])
 
   return (
-    <main className="flex min-h-dvh flex-col p-2">
+    <div className="flex min-h-dvh flex-col">
       {AsyncResult.match(maybeSession, {
         onOk: (session) => {
           return Option.match(session, {
+            onSome: () => <App />,
             onNone: () => (
               <FullScreenCenter>
                 <Spinner />
               </FullScreenCenter>
             ),
-            onSome: () => <App />,
           })
         },
         onErr: (error) => (
@@ -46,7 +46,7 @@ export default function Page() {
           </FullScreenCenter>
         ),
       })}
-    </main>
+    </div>
   )
 }
 
