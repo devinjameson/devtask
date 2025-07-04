@@ -3,8 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { ApiResult } from '@/lib/api/apiResult'
-import { Prisma } from '@/generated/prisma'
 import { ACTIVE_PROFILE_COOKIE } from '@/lib/constants'
+import { Prisma, Task } from '@/generated/prisma'
 
 export type TaskWithRelations = Prisma.TaskGetPayload<{
   include: {
@@ -12,10 +12,10 @@ export type TaskWithRelations = Prisma.TaskGetPayload<{
     status: true
   }
 }>
-export type TasksResponseData = { tasks: TaskWithRelations[] }
-export type TasksResponse = ApiResult<TasksResponseData>
+export type GetTasksResponseData = { tasks: TaskWithRelations[] }
+export type GetTasksResponse = ApiResult<GetTasksResponseData>
 
-export async function GET(): Promise<NextResponse<TasksResponse>> {
+export async function GET(): Promise<NextResponse<GetTasksResponse>> {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
@@ -54,4 +54,74 @@ export async function GET(): Promise<NextResponse<TasksResponse>> {
       tasks: tasks satisfies TaskWithRelations[],
     },
   })
+}
+
+export type AddTaskBody = {
+  title: string
+  statusId: string
+  description?: string
+  categoryId?: string
+}
+
+export type PostTasksResponseData = { task: Task }
+export type PostTasksResponse = ApiResult<PostTasksResponseData>
+
+export async function POST(req: Request): Promise<NextResponse<PostTasksResponse>> {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+
+  if (error || !user) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Unauthorized',
+      },
+      {
+        status: 401,
+      },
+    )
+  }
+
+  const activeProfileId = cookieStore.get(ACTIVE_PROFILE_COOKIE)?.value
+
+  if (!activeProfileId) {
+    return NextResponse.json({ success: false, error: 'No active profile' }, { status: 400 })
+  }
+
+  const { title, description, statusId, categoryId }: AddTaskBody = await req.json()
+
+  if (!title || !statusId) {
+    return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
+  }
+
+  const newTask = await prisma.$transaction(async (tx) => {
+    await tx.task.updateMany({
+      where: { statusId },
+      data: { order: { increment: 1 } },
+    })
+
+    return tx.task.create({
+      data: {
+        title,
+        description,
+        statusId,
+        categoryId,
+        profileId: activeProfileId,
+        order: 0,
+      },
+    })
+  })
+
+  return NextResponse.json(
+    {
+      success: true,
+      data: { task: newTask },
+    },
+    { status: 201 },
+  )
 }
