@@ -29,7 +29,7 @@ model Profile {
   categories Category[]
 
   createdAt DateTime @default(now())
-  Status    Status[]
+  status    Status[]
 }
 
 model Task {
