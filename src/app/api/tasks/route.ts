@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { ApiResult } from '@/lib/api/apiResult'
 import { Prisma } from '@/generated/prisma'
+import { ACTIVE_PROFILE_COOKIE } from '@/lib/constants'
 
 export type TaskWithRelations = Prisma.TaskGetPayload<{
   include: {
@@ -35,24 +36,17 @@ export async function GET(): Promise<NextResponse<TasksResponse>> {
     )
   }
 
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    include: {
-      profiles: {
-        include: {
-          tasks: {
-            include: {
-              category: true,
-              status: true,
-            },
-            orderBy: { order: 'asc' },
-          },
-        },
-      },
-    },
-  })
+  const activeProfileId = cookieStore.get(ACTIVE_PROFILE_COOKIE)?.value
 
-  const tasks = dbUser?.profiles[0]?.tasks ?? []
+  if (!activeProfileId) {
+    return NextResponse.json({ success: false, error: 'No active profile' }, { status: 400 })
+  }
+
+  const tasks = await prisma.task.findMany({
+    where: { profileId: activeProfileId },
+    include: { category: true, status: true },
+    orderBy: { order: 'asc' },
+  })
 
   return NextResponse.json({
     success: true,
