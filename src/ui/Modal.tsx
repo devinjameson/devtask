@@ -15,17 +15,17 @@ type ModalProps = {
 export function Modal({ open, onCloseAction, title, description, children }: ModalProps) {
   return (
     <Dialog open={open} onClose={() => onCloseAction?.()} className="relative z-50">
-      {/* Backdrop with transition */}
+      {/* Backdrop */}
       <DialogBackdrop
         transition
-        className="fixed inset-0 bg-black/30 transition-opacity duration-300 ease-out data-closed:opacity-0"
+        className="fixed inset-0 bg-black/30 transition-opacity duration-200 ease-out data-closed:opacity-0"
       />
 
       {/* Centered panel wrapper */}
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <DialogPanel
           transition
-          className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl transition-all duration-300 ease-out data-closed:opacity-0 data-closed:scale-95"
+          className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl transition-all duration-200 ease-out data-closed:opacity-0 data-closed:scale-95"
         >
           {/* Close button */}
           <button

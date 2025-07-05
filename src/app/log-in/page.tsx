@@ -59,7 +59,7 @@ export default function LogIn() {
 
   return (
     <AuthLayout>
-      <form onSubmit={handleSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
+      <form onSubmit={handleSubmit} className="grid w-full max-w-sm grid-cols-1 gap-4">
         <Heading>Sign in to your account</Heading>
         <Field>
           <Label>Email</Label>
