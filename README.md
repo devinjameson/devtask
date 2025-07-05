@@ -13,6 +13,7 @@
 ```sh
 pnpm install
 ```
+
 ---
 
 ### Start supabase
@@ -32,7 +33,7 @@ Keep these areound for the next step
 cp .env.local.example .env
 ```
 
-Replace the placeholder values in `.env` with your actual Supabase project credentials. 
+Replace the placeholder values in `.env` with your actual Supabase project credentials.
 You'll see these when Supabase finishes starting up.
 
 ---

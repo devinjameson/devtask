@@ -1,7 +1,7 @@
 'use client'
 
 import { TaskWithRelations } from '@/app/api/tasks/route'
-import { Status } from '@/generated/prisma'
+import { Category, Status } from '@/generated/prisma'
 import { PlusIcon } from '@heroicons/react/24/solid'
 import { useState } from 'react'
 import AddTaskModal from './AddTaskModal'
@@ -9,9 +9,11 @@ import AddTaskModal from './AddTaskModal'
 export default function TaskBoard({
   tasks,
   statuses,
+  categories,
 }: {
   tasks: TaskWithRelations[]
   statuses: Status[]
+  categories: Category[]
 }) {
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false)
   const [statusId, setStatusId] = useState<string | null>(null)
@@ -70,6 +72,8 @@ export default function TaskBoard({
         open={isAddTaskModalOpen}
         onCloseAction={handleCloseAddTaskModal}
         statusId={statusId}
+        statuses={statuses}
+        categories={categories}
       />
     </>
   )

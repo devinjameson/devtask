@@ -11,6 +11,7 @@ import { Button } from '@/ui/catalyst/button'
 import { supabase } from '@/lib/supabase/client'
 import { ACTIVE_PROFILE_COOKIE } from '@/lib/constants'
 import { pipe } from 'effect'
+import { useCategories } from './useCategories'
 
 export default function App() {
   useEnsureActiveProfile()
@@ -28,11 +29,18 @@ export default function App() {
   const profilesQueryResult = useProfiles()
   const asyncProfiles = AsyncResult.fromQueryResult(profilesQueryResult)
 
+  const categoriesQueryResult = useCategories()
+  const asyncCategories = AsyncResult.fromQueryResult(categoriesQueryResult)
+
   const combined = pipe(
     asyncTasks,
     AsyncResult.combine(asyncStatuses),
     AsyncResult.combine(asyncProfiles),
-    AsyncResult.map(([profiles, [statuses, tasks]]) => [tasks, statuses, profiles] as const),
+    AsyncResult.combine(asyncCategories),
+    AsyncResult.map(
+      ([categories, [profiles, [statuses, tasks]]]) =>
+        [tasks, statuses, profiles, categories] as const,
+    ),
   )
 
   const handleSignOut = async () => {
@@ -48,7 +56,9 @@ export default function App() {
 
       <main className="flex-1 p-4 flex flex-col gap-4">
         {AsyncResult.match(combined, {
-          onOk: ([tasks, statuses]) => <TaskBoard tasks={tasks} statuses={statuses} />,
+          onOk: ([tasks, statuses, _, categories]) => (
+            <TaskBoard tasks={tasks} statuses={statuses} categories={categories} />
+          ),
           onLoading: () => <div className="text-gray-500">Loading tasks...</div>,
           onErr: (error) => (
             <div className="text-red-600">Error loading tasks: {error.message}</div>
