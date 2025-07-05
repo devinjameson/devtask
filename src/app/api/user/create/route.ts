@@ -15,8 +15,8 @@ export type UserWithProfiles = Prisma.UserGetPayload<{
     profiles: true
   }
 }>
-export type CreateUserResponseData = { user: UserWithProfiles }
-export type CreateUserResult = ApiResult<CreateUserResponseData>
+export type CreateUserResultData = { user: UserWithProfiles }
+export type CreateUserResult = ApiResult<CreateUserResultData>
 
 export async function POST(req: NextRequest): Promise<NextResponse<CreateUserResult>> {
   const cookieStore = await cookies()

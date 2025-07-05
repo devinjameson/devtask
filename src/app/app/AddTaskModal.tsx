@@ -6,6 +6,9 @@ import { Textarea } from '@/ui/catalyst/textarea'
 import { Modal } from '@/ui/Modal'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
+import { AddTaskBody } from '../api/tasks/route'
+import { Button } from '@/ui/catalyst/button'
+import { useAddTaskMutation } from './useAddTaskMutation'
 
 type Inputs = {
   title: string
@@ -40,14 +43,28 @@ export default function AddTaskModal({
     }
   }, [open, statusId, reset])
 
-  const onSubmit = (data: Inputs) => {}
+  const addTaskMutation = useAddTaskMutation()
+
+  const onSubmit = async (data: Inputs) => {
+    const body: AddTaskBody = {
+      title: data.title,
+      statusId: data.statusId,
+      description: data.description || undefined,
+      categoryId: data.categoryId,
+    }
+    addTaskMutation.mutate(body, {
+      onSuccess: () => {
+        onCloseAction()
+      },
+    })
+  }
 
   return (
     <Modal open={open} onCloseAction={onCloseAction} title="Add a task">
       <form onSubmit={handleSubmit(onSubmit)} className="grid w-full grid-cols-1 gap-4">
         <Field>
           <Label>Title</Label>
-          <Input {...(register('title'), { required: true, autoFocus: true })} />
+          <Input {...register('title', { required: true })} autoFocus />
           {errors.title && <ErrorMessage>A title is required.</ErrorMessage>}
         </Field>
 
@@ -81,6 +98,10 @@ export default function AddTaskModal({
             })}
           </Select>
         </Field>
+
+        <Button type="submit" className="w-full" disabled={addTaskMutation.isPending}>
+          {addTaskMutation.isPending ? 'Adding...' : 'Add Task'}
+        </Button>
       </form>
     </Modal>
   )

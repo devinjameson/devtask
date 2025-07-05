@@ -12,10 +12,10 @@ export type TaskWithRelations = Prisma.TaskGetPayload<{
     status: true
   }
 }>
-export type GetTasksResponseData = { tasks: TaskWithRelations[] }
-export type GetTasksResponse = ApiResult<GetTasksResponseData>
+export type GetTasksResultData = { tasks: TaskWithRelations[] }
+export type GetTasksResult = ApiResult<GetTasksResultData>
 
-export async function GET(): Promise<NextResponse<GetTasksResponse>> {
+export async function GET(): Promise<NextResponse<GetTasksResult>> {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
@@ -63,10 +63,10 @@ export type AddTaskBody = {
   categoryId?: string
 }
 
-export type PostTasksResponseData = { task: Task }
-export type PostTasksResponse = ApiResult<PostTasksResponseData>
+export type AddTaskResultData = { task: Task }
+export type AddTaskResult = ApiResult<AddTaskResultData>
 
-export async function POST(req: Request): Promise<NextResponse<PostTasksResponse>> {
+export async function POST(req: Request): Promise<NextResponse<AddTaskResult>> {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 

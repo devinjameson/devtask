@@ -1,9 +1,9 @@
-import { GetTasksResponseData, TaskWithRelations } from '@/app/api/tasks/route'
+import { GetTasksResultData, TaskWithRelations } from '@/app/api/tasks/route'
 import { fetchJson } from '@/lib/api/fetchJson'
 import { useQuery } from '@tanstack/react-query'
 
 const fetchTasks = async (): Promise<TaskWithRelations[]> => {
-  const result = await fetchJson<GetTasksResponseData>(() => fetch('/api/tasks'))
+  const result = await fetchJson<GetTasksResultData>(() => fetch('/api/tasks'))
 
   if (!result.success) {
     throw new Error(result.error)

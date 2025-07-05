@@ -6,10 +6,10 @@ import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
-export type StatusesResponseData = { statuses: Status[] }
-export type StatusesResponse = ApiResult<StatusesResponseData>
+export type StatusesResultData = { statuses: Status[] }
+export type StatusesResult = ApiResult<StatusesResultData>
 
-export async function GET(): Promise<NextResponse<StatusesResponse>> {
+export async function GET(): Promise<NextResponse<StatusesResult>> {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 

@@ -5,10 +5,10 @@ import { prisma } from '@/lib/prisma'
 import { ApiResult } from '@/lib/api/apiResult'
 import { Profile } from '@/generated/prisma'
 
-export type ProfilesResponseData = { profiles: Profile[] }
-export type ProfilesResponse = ApiResult<ProfilesResponseData>
+export type ProfilesResultData = { profiles: Profile[] }
+export type ProfilesResult = ApiResult<ProfilesResultData>
 
-export async function GET(): Promise<NextResponse<ProfilesResponse>> {
+export async function GET(): Promise<NextResponse<ProfilesResult>> {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 

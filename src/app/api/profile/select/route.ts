@@ -7,9 +7,9 @@ export type SelectProfileBody = {
   profileId: string
 }
 
-export type SelectProfileResponse = ApiResult<null>
+export type SelectProfileResult = ApiResult<null>
 
-export async function POST(req: NextRequest): Promise<NextResponse<SelectProfileResponse>> {
+export async function POST(req: NextRequest): Promise<NextResponse<SelectProfileResult>> {
   const { profileId }: SelectProfileBody = await req.json()
 
   if (!profileId) {
