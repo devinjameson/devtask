@@ -1,5 +1,11 @@
 # devtask
 
+## Requirements
+
+- Homebrew
+- Docker Desktop
+- Supabase
+
 ## Getting Started
 
 ### 1. Set up environment variables
