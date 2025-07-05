@@ -5,6 +5,7 @@ import { Status } from '@/generated/prisma'
 import { Modal } from '@/ui/Modal'
 import { PlusIcon } from '@heroicons/react/24/solid'
 import { useState } from 'react'
+import AddTaskModal from './AddTaskModal'
 
 export default function TaskBoard({
   tasks,
@@ -65,9 +66,8 @@ export default function TaskBoard({
           </section>
         ))}
       </div>
-      <Modal open={isAddTaskModalOpen} onCloseAction={handleCloseAddTaskModal} title="Add a task">
-        {statusId}
-      </Modal>
+
+      <AddTaskModal open={isAddTaskModalOpen} onCloseAction={handleCloseAddTaskModal} />
     </>
   )
 }
