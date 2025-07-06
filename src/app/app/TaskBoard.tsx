@@ -6,6 +6,7 @@ import { PlusIcon } from '@heroicons/react/24/solid'
 import { useState } from 'react'
 import AddTaskModal from './AddTaskModal'
 import TaskCard from './TaskCard'
+import TaskDetailsModal from './TaskDetailsModal'
 
 export default function TaskBoard({
   tasks,
@@ -18,6 +19,8 @@ export default function TaskBoard({
 }) {
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false)
   const [statusId, setStatusId] = useState<string | null>(null)
+  const [isTaskDetailsModalOpen, setIsTaskDetailsModalOpen] = useState(false)
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
 
   const handleClickAddTask = (statusId_: string) => {
     setStatusId(statusId_)
@@ -26,6 +29,15 @@ export default function TaskBoard({
 
   const handleCloseAddTaskModal = () => {
     setIsAddTaskModalOpen(false)
+  }
+
+  const handleClickTask = (taskId: string) => {
+    setSelectedTaskId(taskId)
+    setIsTaskDetailsModalOpen(true)
+  }
+
+  const handleCloseTaskDetailsModal = () => {
+    setIsTaskDetailsModalOpen(false)
   }
 
   return (
@@ -56,7 +68,7 @@ export default function TaskBoard({
               {tasks
                 .filter((task) => task.statusId === status.id)
                 .map((task) => (
-                  <TaskCard key={task.id} task={task} />
+                  <TaskCard key={task.id} task={task} onClick={() => handleClickTask(task.id)} />
                 ))}
             </ul>
           </section>
@@ -69,6 +81,13 @@ export default function TaskBoard({
         statusId={statusId}
         statuses={statuses}
         categories={categories}
+      />
+
+      <TaskDetailsModal
+        open={isTaskDetailsModalOpen}
+        onCloseAction={handleCloseTaskDetailsModal}
+        taskId={selectedTaskId}
+        tasks={tasks}
       />
     </>
   )

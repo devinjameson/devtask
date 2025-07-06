@@ -12,7 +12,6 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { CreateUserBody, CreateUserResultData } from '../api/user/create/route'
 import { fetchApi } from '@/lib/api/fetchApi'
-import { setActiveProfile } from '@/lib/api/setActiveProfile'
 
 export default function SignUp() {
   const router = useRouter()
@@ -61,10 +60,15 @@ export default function SignUp() {
       return
     }
 
-    const profile = result.data.user.profiles[0]
+    // Set up the session with active profile
+    const sessionResult = await fetchApi<{ profileId: string }>(() =>
+      fetch('/api/auth/session', { method: 'POST' }),
+    )
 
-    if (profile) {
-      await setActiveProfile(profile.id)
+    if (!sessionResult.success) {
+      setError('Failed to set up profile')
+      setLoading(false)
+      return
     }
 
     router.push('/')

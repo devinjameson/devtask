@@ -10,11 +10,7 @@ import { Strong, Text, TextLink } from '@/ui/catalyst/text'
 import Spinner from '@/ui/Spinner'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { GetProfilesResultData } from '@/app/api/profiles/route'
 import { fetchApi } from '@/lib/api/fetchApi'
-import { setActiveProfile } from '@/lib/api/setActiveProfile'
-import Cookies from 'js-cookie'
-import { ACTIVE_PROFILE_COOKIE } from '@/lib/constants'
 
 export default function LogIn() {
   const router = useRouter()
@@ -40,18 +36,14 @@ export default function LogIn() {
       return
     }
 
-    const existingActiveProfileId = Cookies.get(ACTIVE_PROFILE_COOKIE)
+    const result = await fetchApi<{ profileId: string }>(() =>
+      fetch('/api/auth/session', { method: 'POST' }),
+    )
 
-    if (!existingActiveProfileId) {
-      const result = await fetchApi<GetProfilesResultData>(() => fetch('/api/profiles'))
-
-      if (result.success) {
-        const firstProfileId = result.data.profiles[0]?.id
-
-        if (firstProfileId) {
-          await setActiveProfile(firstProfileId)
-        }
-      }
+    if (!result.success) {
+      setError('Failed to set up profile')
+      setLoading(false)
+      return
     }
 
     router.push('/')

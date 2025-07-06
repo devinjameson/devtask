@@ -30,6 +30,14 @@ const config = [
     rules: {
       '@typescript-eslint/no-shadow': 'error',
       '@typescript-eslint/no-unnecessary-condition': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
     },
   },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),

@@ -22,10 +22,6 @@ export const setActiveProfile = (
   profileId: string,
 ): Effect.Effect<void, ServiceException | UnknownException> =>
   Effect.gen(function* () {
-    if (!profileId) {
-      return yield* Effect.fail({ message: 'Missing profileId', status: 400 })
-    }
-
     const cookieStore = yield* Effect.tryPromise(() => cookies())
     cookieStore.set(ACTIVE_PROFILE_COOKIE, profileId, {
       path: '/',
