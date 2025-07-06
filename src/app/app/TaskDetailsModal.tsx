@@ -1,44 +1,119 @@
 import { TaskWithRelations } from '../api/tasks/route'
 import { Modal } from '@/ui/Modal'
-import { Field, Label } from '@/ui/catalyst/fieldset'
-import { Text } from '@/ui/catalyst/text'
+import { ErrorMessage, Field, Label } from '@/ui/catalyst/fieldset'
+import { Input } from '@/ui/catalyst/input'
+import { Select } from '@/ui/catalyst/select'
+import { Textarea } from '@/ui/catalyst/textarea'
+import { Button } from '@/ui/catalyst/button'
+import { DatePicker } from '@/ui/DatePicker'
+import { useForm, Controller } from 'react-hook-form'
+import { useEffect } from 'react'
+import { Status, Category } from '@/generated/prisma'
+
+type Inputs = {
+  title: string
+  description: string
+  statusId: string
+  categoryId?: string
+  dueDate?: Date
+}
 
 export default function TaskDetailsModal({
   open,
   onCloseAction,
-  taskId,
-  tasks,
+  task,
+  statuses,
+  categories,
 }: {
   open: boolean
   onCloseAction: () => void
-  taskId: string | null
-  tasks: TaskWithRelations[]
+  task: TaskWithRelations | null
+  statuses: Status[]
+  categories: Category[]
 }) {
-  const task = tasks.find((t) => t.id === taskId)
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors, isDirty },
+  } = useForm<Inputs>()
+
+  useEffect(() => {
+    if (open && task) {
+      reset({
+        title: task.title,
+        description: task.description ?? '',
+        statusId: task.statusId,
+        categoryId: task.categoryId ?? '',
+        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+      })
+    }
+  }, [open, task, reset])
+
+  const onSubmit = async (data: Inputs) => {
+    console.log('Update task:', data)
+  }
+
+  const isSaveDisabled = !isDirty
 
   return (
-    <Modal open={open} onCloseAction={onCloseAction} title={task?.title || ''}>
+    <Modal open={open} onCloseAction={onCloseAction} title={task?.title || 'Task Details'}>
       {task ? (
-        <div className="grid w-full grid-cols-1 gap-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="grid w-full grid-cols-1 gap-4">
           <Field>
-            <Label>Status</Label>
-            <Text>{task.status.name}</Text>
+            <Label>Title</Label>
+            <Input {...register('title', { required: true })} />
+            {errors.title && <ErrorMessage>A title is required.</ErrorMessage>}
           </Field>
 
-          {task.description && (
-            <Field>
-              <Label>Description</Label>
-              <Text className="whitespace-pre-wrap">{task.description}</Text>
-            </Field>
-          )}
+          <Field>
+            <Label>Description</Label>
+            <Textarea {...register('description')} />
+          </Field>
 
-          {task.category && (
-            <Field>
-              <Label>Category</Label>
-              <Text>{task.category.name}</Text>
-            </Field>
-          )}
-        </div>
+          <Field>
+            <Label>Category</Label>
+            <Select {...register('categoryId')}>
+              <option value="">No category</option>
+              {categories.map((category) => {
+                return (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                )
+              })}
+            </Select>
+          </Field>
+
+          <Field>
+            <Label>Status</Label>
+            <Select {...register('statusId')}>
+              {statuses.map((status) => {
+                return (
+                  <option key={status.id} value={status.id}>
+                    {status.name}
+                  </option>
+                )
+              })}
+            </Select>
+          </Field>
+
+          <Field>
+            <Label>Due Date</Label>
+            <Controller
+              control={control}
+              name="dueDate"
+              render={({ field }) => (
+                <DatePicker value={field.value} onChange={field.onChange} placeholder="Due date" />
+              )}
+            />
+          </Field>
+
+          <Button type="submit" className="w-full" disabled={isSaveDisabled}>
+            Save Task
+          </Button>
+        </form>
       ) : null}
     </Modal>
   )

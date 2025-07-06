@@ -40,6 +40,8 @@ export default function TaskBoard({
     setIsTaskDetailsModalOpen(false)
   }
 
+  const selectedTask = selectedTaskId ? tasks.find(({ id }) => id === selectedTaskId) : undefined
+
   return (
     <>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-6 p-2 flex-1 overflow-hidden">
@@ -86,8 +88,9 @@ export default function TaskBoard({
       <TaskDetailsModal
         open={isTaskDetailsModalOpen}
         onCloseAction={handleCloseTaskDetailsModal}
-        taskId={selectedTaskId}
-        tasks={tasks}
+        task={selectedTask ?? null}
+        statuses={statuses}
+        categories={categories}
       />
     </>
   )
