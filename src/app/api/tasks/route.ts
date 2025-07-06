@@ -1,59 +1,22 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
-import { prisma } from '@/lib/prisma'
 import { ApiResult } from '@/lib/api/apiResult'
-import { ACTIVE_PROFILE_COOKIE } from '@/lib/constants'
-import { Prisma, Task } from '@/generated/prisma'
+import { Task } from '@/generated/prisma'
+import { AuthUserService, ProfileService, TaskService } from '@/lib/api/service'
+import { Effect } from 'effect'
+import { unknownExceptionToServiceException } from '@/lib/api/serviceException'
+import { serviceResultToNextResponse } from '@/lib/api/serviceResultToNextResponse'
 
-export type TaskWithRelations = Prisma.TaskGetPayload<{
-  include: {
-    category: true
-    status: true
-  }
-}>
-export type GetTasksResultData = { tasks: TaskWithRelations[] }
+export type { TaskWithRelations } from '@/lib/api/service/taskService'
+export type GetTasksResultData = { tasks: TaskService.TaskWithRelations[] }
 export type GetTasksResult = ApiResult<GetTasksResultData>
 
 export async function GET(): Promise<NextResponse<GetTasksResult>> {
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
-
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Unauthorized',
-      },
-      {
-        status: 401,
-      },
-    )
-  }
-
-  const activeProfileId = cookieStore.get(ACTIVE_PROFILE_COOKIE)?.value
-
-  if (!activeProfileId) {
-    return NextResponse.json({ success: false, error: 'No active profile' }, { status: 400 })
-  }
-
-  const tasks = await prisma.task.findMany({
-    where: { profileId: activeProfileId },
-    include: { category: true, status: true },
-    orderBy: { order: 'asc' },
-  })
-
-  return NextResponse.json({
-    success: true,
-    data: {
-      tasks: tasks satisfies TaskWithRelations[],
-    },
-  })
+  return await Effect.gen(function* () {
+    yield* AuthUserService.getAuthUser
+    const profileId = yield* ProfileService.getActiveProfileId
+    const tasks = yield* TaskService.listTasks(profileId)
+    return { tasks }
+  }).pipe(unknownExceptionToServiceException, serviceResultToNextResponse(), Effect.runPromise)
 }
 
 export type CreateTaskBody = {
@@ -67,61 +30,19 @@ export type CreateTaskResultData = { task: Task }
 export type CreateTaskResult = ApiResult<CreateTaskResultData>
 
 export async function POST(req: Request): Promise<NextResponse<CreateTaskResult>> {
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
-
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Unauthorized',
-      },
-      {
-        status: 401,
-      },
+  return await Effect.gen(function* () {
+    yield* AuthUserService.getAuthUser
+    const profileId = yield* ProfileService.getActiveProfileId
+    const { title, description, statusId, categoryId }: CreateTaskBody = yield* Effect.tryPromise(
+      () => req.json(),
     )
-  }
-
-  const activeProfileId = cookieStore.get(ACTIVE_PROFILE_COOKIE)?.value
-
-  if (!activeProfileId) {
-    return NextResponse.json({ success: false, error: 'No active profile' }, { status: 400 })
-  }
-
-  const { title, description, statusId, categoryId }: CreateTaskBody = await req.json()
-
-  if (!title || !statusId) {
-    return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
-  }
-
-  const newTask = await prisma.$transaction(async (tx) => {
-    await tx.task.updateMany({
-      where: { statusId },
-      data: { order: { increment: 1 } },
+    const task = yield* TaskService.createTask({
+      title,
+      description,
+      statusId,
+      categoryId,
+      profileId,
     })
-
-    return tx.task.create({
-      data: {
-        title,
-        description,
-        statusId,
-        categoryId,
-        profileId: activeProfileId,
-        order: 0,
-      },
-    })
-  })
-
-  return NextResponse.json(
-    {
-      success: true,
-      data: { task: newTask },
-    },
-    { status: 201 },
-  )
+    return { task }
+  }).pipe(unknownExceptionToServiceException, serviceResultToNextResponse(201), Effect.runPromise)
 }

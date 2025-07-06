@@ -17,4 +17,3 @@ export const listCategories = (
 
     return categories
   })
-
