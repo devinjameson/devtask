@@ -1,10 +1,10 @@
-import { StatusesResultData } from '@/app/api/statuses/route'
+import { GetStatusesResultData } from '@/app/api/statuses/route'
 import { Status } from '@/generated/prisma'
 import { fetchJson } from '@/lib/api/fetchJson'
 import { useQuery, UseQueryOptions } from '@tanstack/react-query'
 
 const fetchStatuses = async (): Promise<Status[]> => {
-  const result = await fetchJson<StatusesResultData>(() => fetch('/api/statuses'))
+  const result = await fetchJson<GetStatusesResultData>(() => fetch('/api/statuses'))
 
   if (!result.success) {
     throw new Error(result.error)

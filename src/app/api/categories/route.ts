@@ -6,10 +6,10 @@ import { ApiResult } from '@/lib/api/apiResult'
 import { Category } from '@/generated/prisma'
 import { ACTIVE_PROFILE_COOKIE } from '@/lib/constants'
 
-export type CategoriesResponseData = { categories: Category[] }
-export type CategoriesResponse = ApiResult<CategoriesResponseData>
+export type GetCategoriesResultData = { categories: Category[] }
+export type GetCategoriesResult = ApiResult<GetCategoriesResultData>
 
-export async function GET(): Promise<NextResponse<CategoriesResponse>> {
+export async function GET(): Promise<NextResponse<GetCategoriesResult>> {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 

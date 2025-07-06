@@ -56,17 +56,17 @@ export async function GET(): Promise<NextResponse<GetTasksResult>> {
   })
 }
 
-export type AddTaskBody = {
+export type CreateTaskBody = {
   title: string
   statusId: string
   description?: string
   categoryId?: string
 }
 
-export type AddTaskResultData = { task: Task }
-export type AddTaskResult = ApiResult<AddTaskResultData>
+export type CreateTaskResultData = { task: Task }
+export type CreateTaskResult = ApiResult<CreateTaskResultData>
 
-export async function POST(req: Request): Promise<NextResponse<AddTaskResult>> {
+export async function POST(req: Request): Promise<NextResponse<CreateTaskResult>> {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
@@ -93,7 +93,7 @@ export async function POST(req: Request): Promise<NextResponse<AddTaskResult>> {
     return NextResponse.json({ success: false, error: 'No active profile' }, { status: 400 })
   }
 
-  const { title, description, statusId, categoryId }: AddTaskBody = await req.json()
+  const { title, description, statusId, categoryId }: CreateTaskBody = await req.json()
 
   if (!title || !statusId) {
     return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })

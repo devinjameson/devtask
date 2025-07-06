@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { AddTaskBody, AddTaskResult } from '../api/tasks/route'
+import { CreateTaskBody, CreateTaskResult } from '../api/tasks/route'
 
-export const useAddTaskMutation = () => {
+export const useCreateTaskMutation = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (body: AddTaskBody) => {
+    mutationFn: async (body: CreateTaskBody) => {
       const response = await fetch('/api/tasks', {
         method: 'POST',
         headers: {
@@ -14,7 +14,7 @@ export const useAddTaskMutation = () => {
         body: JSON.stringify(body),
       })
 
-      const result: AddTaskResult = await response.json()
+      const result: CreateTaskResult = await response.json()
 
       if (!result.success) {
         throw new Error(result.error)

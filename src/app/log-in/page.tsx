@@ -10,7 +10,7 @@ import { Strong, Text, TextLink } from '@/ui/catalyst/text'
 import Spinner from '@/ui/Spinner'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { ProfilesResultData } from '@/app/api/profiles/route'
+import { GetProfilesResultData } from '@/app/api/profiles/route'
 import { fetchJson } from '@/lib/api/fetchJson'
 import { setActiveProfile } from '@/lib/api/setActiveProfile'
 import Cookies from 'js-cookie'
@@ -43,7 +43,7 @@ export default function LogIn() {
     const existingActiveProfileId = Cookies.get(ACTIVE_PROFILE_COOKIE)
 
     if (!existingActiveProfileId) {
-      const result = await fetchJson<ProfilesResultData>(() => fetch('/api/profiles'))
+      const result = await fetchJson<GetProfilesResultData>(() => fetch('/api/profiles'))
 
       if (result.success) {
         const firstProfileId = result.data.profiles[0]?.id

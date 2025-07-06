@@ -6,9 +6,9 @@ import { Textarea } from '@/ui/catalyst/textarea'
 import { Modal } from '@/ui/Modal'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { AddTaskBody } from '../api/tasks/route'
+import { CreateTaskBody } from '../api/tasks/route'
 import { Button } from '@/ui/catalyst/button'
-import { useAddTaskMutation } from './useAddTaskMutation'
+import { useCreateTaskMutation } from './useCreateTaskMutation'
 
 type Inputs = {
   title: string
@@ -43,16 +43,16 @@ export default function AddTaskModal({
     }
   }, [open, statusId, reset])
 
-  const addTaskMutation = useAddTaskMutation()
+  const createTaskMutation = useCreateTaskMutation()
 
   const onSubmit = async (data: Inputs) => {
-    const body: AddTaskBody = {
+    const body: CreateTaskBody = {
       title: data.title,
       statusId: data.statusId,
       description: data.description || undefined,
       categoryId: data.categoryId,
     }
-    addTaskMutation.mutate(body, {
+    createTaskMutation.mutate(body, {
       onSuccess: () => {
         onCloseAction()
       },
@@ -99,8 +99,8 @@ export default function AddTaskModal({
           </Select>
         </Field>
 
-        <Button type="submit" className="w-full" disabled={addTaskMutation.isPending}>
-          {addTaskMutation.isPending ? 'Adding...' : 'Add Task'}
+        <Button type="submit" className="w-full" disabled={createTaskMutation.isPending}>
+          {createTaskMutation.isPending ? 'Adding...' : 'Add Task'}
         </Button>
       </form>
     </Modal>
