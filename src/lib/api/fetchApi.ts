@@ -1,6 +1,6 @@
 import { ApiResult } from './apiResult'
 
-export async function fetchJson<T>(fetchFn: () => Promise<Response>): Promise<ApiResult<T>> {
+export async function fetchApi<T>(fetchFn: () => Promise<Response>): Promise<ApiResult<T>> {
   try {
     const response = await fetchFn()
 

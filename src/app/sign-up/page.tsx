@@ -11,7 +11,7 @@ import Spinner from '@/ui/Spinner'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { CreateUserBody, CreateUserResultData } from '../api/user/create/route'
-import { fetchJson } from '@/lib/api/fetchJson'
+import { fetchApi } from '@/lib/api/fetchApi'
 import { setActiveProfile } from '@/lib/api/setActiveProfile'
 
 export default function SignUp() {
@@ -47,7 +47,7 @@ export default function SignUp() {
       lastName,
     }
 
-    const result = await fetchJson<CreateUserResultData>(() =>
+    const result = await fetchApi<CreateUserResultData>(() =>
       fetch('/api/user/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

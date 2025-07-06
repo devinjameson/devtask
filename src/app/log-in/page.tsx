@@ -11,7 +11,7 @@ import Spinner from '@/ui/Spinner'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { GetProfilesResultData } from '@/app/api/profiles/route'
-import { fetchJson } from '@/lib/api/fetchJson'
+import { fetchApi } from '@/lib/api/fetchApi'
 import { setActiveProfile } from '@/lib/api/setActiveProfile'
 import Cookies from 'js-cookie'
 import { ACTIVE_PROFILE_COOKIE } from '@/lib/constants'
@@ -43,7 +43,7 @@ export default function LogIn() {
     const existingActiveProfileId = Cookies.get(ACTIVE_PROFILE_COOKIE)
 
     if (!existingActiveProfileId) {
-      const result = await fetchJson<GetProfilesResultData>(() => fetch('/api/profiles'))
+      const result = await fetchApi<GetProfilesResultData>(() => fetch('/api/profiles'))
 
       if (result.success) {
         const firstProfileId = result.data.profiles[0]?.id

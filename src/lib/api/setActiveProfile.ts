@@ -1,8 +1,8 @@
 import { ApiResult } from './apiResult'
-import { fetchJson } from './fetchJson'
+import { fetchApi } from './fetchApi'
 
 export async function setActiveProfile(profileId: string): Promise<ApiResult<null>> {
-  return fetchJson<null>(() =>
+  return fetchApi<null>(() =>
     fetch('/api/profile/select', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -1,10 +1,10 @@
 import { Category } from '@/generated/prisma'
-import { fetchJson } from '@/lib/api/fetchJson'
+import { fetchApi } from '@/lib/api/fetchApi'
 import { useQuery } from '@tanstack/react-query'
 import { GetCategoriesResultData } from '../api/categories/route'
 
 const fetchCategories = async (): Promise<Category[]> => {
-  const result = await fetchJson<GetCategoriesResultData>(() => fetch('/api/categories'))
+  const result = await fetchApi<GetCategoriesResultData>(() => fetch('/api/categories'))
 
   if (!result.success) {
     throw new Error(result.error)

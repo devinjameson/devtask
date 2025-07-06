@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import Cookies from 'js-cookie'
-import { fetchJson } from '@/lib/api/fetchJson'
+import { fetchApi } from '@/lib/api/fetchApi'
 import { setActiveProfile } from '@/lib/api/setActiveProfile'
 import { GetProfilesResultData } from '@/app/api/profiles/route'
 import { ACTIVE_PROFILE_COOKIE } from '@/lib/constants'
@@ -13,7 +13,7 @@ export const useEnsureActiveProfile = () => {
       const existing = Cookies.get(ACTIVE_PROFILE_COOKIE)
 
       if (!existing) {
-        const result = await fetchJson<GetProfilesResultData>(() => fetch('/api/profiles'))
+        const result = await fetchApi<GetProfilesResultData>(() => fetch('/api/profiles'))
 
         if (result.success) {
           const firstProfileId = result.data.profiles[0]?.id

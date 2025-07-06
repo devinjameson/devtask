@@ -1,10 +1,10 @@
 import { GetProfilesResultData } from '@/app/api/profiles/route'
 import { Profile } from '@/generated/prisma'
-import { fetchJson } from '@/lib/api/fetchJson'
+import { fetchApi } from '@/lib/api/fetchApi'
 import { useQuery } from '@tanstack/react-query'
 
 const fetchProfiles = async (): Promise<Profile[]> => {
-  const result = await fetchJson<GetProfilesResultData>(() => fetch('/api/profiles'))
+  const result = await fetchApi<GetProfilesResultData>(() => fetch('/api/profiles'))
 
   if (!result.success) {
     throw new Error(result.error)
