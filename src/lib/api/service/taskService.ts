@@ -29,43 +29,45 @@ export type TaskWithRelations = Prisma.TaskGetPayload<{
 export type CreateTaskPayload = {
   title: string
   statusId: string
+  profileId: string
   description?: string
   categoryId?: string
-  profileId: string
+  dueDate?: string
 }
 
 export const createTask = (
   payload: CreateTaskPayload,
 ): Effect.Effect<Task, ServiceException | UnknownException> =>
   Effect.gen(function* () {
-    const { title, statusId, description, categoryId, profileId } = payload
-
-    if (!title || !statusId) {
+    if (!payload.title || !payload.statusId) {
       return yield* Effect.fail({ message: 'Missing required fields', status: 400 })
     }
 
-    const newTask = yield* Effect.tryPromise(() =>
-      prisma.$transaction(async (tx) => {
-        const taskWithMaxOrder = await tx.task.findFirst({
-          where: { statusId },
-          orderBy: { order: 'desc' },
-          select: { order: true },
-        })
+    const newTask = yield* Effect.tryPromise({
+      try: () =>
+        prisma.$transaction(async (tx) => {
+          const taskWithMaxOrder = await tx.task.findFirst({
+            where: { statusId: payload.statusId },
+            orderBy: { order: 'desc' },
+            select: { order: true },
+          })
 
-        const order = taskWithMaxOrder ? taskWithMaxOrder.order + 1 : 0
+          const order = taskWithMaxOrder ? taskWithMaxOrder.order + 1 : 0
 
-        return tx.task.create({
-          data: {
-            title,
-            description,
-            statusId,
-            categoryId,
-            profileId,
-            order,
-          },
-        })
-      }),
-    )
+          return tx.task.create({
+            data: {
+              title: payload.title,
+              description: payload.description || undefined,
+              statusId: payload.statusId,
+              categoryId: payload.categoryId || undefined,
+              dueDate: payload.dueDate ? new Date(payload.dueDate) : undefined,
+              profileId: payload.profileId,
+              order,
+            },
+          })
+        }),
+      catch: () => ({ message: 'Failed createTask', status: 500 }),
+    })
 
     return newTask
   })

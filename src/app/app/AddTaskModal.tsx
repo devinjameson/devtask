@@ -9,12 +9,15 @@ import { useForm } from 'react-hook-form'
 import { CreateTaskBody } from '../api/tasks/route'
 import { Button } from '@/ui/catalyst/button'
 import { useCreateTaskMutation } from './useCreateTaskMutation'
+import { DatePicker } from '@/ui/DatePicker'
+import { Controller } from 'react-hook-form'
 
 type Inputs = {
   title: string
   description: string
   statusId: string
   categoryId?: string
+  dueDate?: Date
 }
 
 export default function AddTaskModal({
@@ -34,6 +37,7 @@ export default function AddTaskModal({
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<Inputs>()
 
@@ -50,7 +54,8 @@ export default function AddTaskModal({
       title: data.title,
       statusId: data.statusId,
       description: data.description || undefined,
-      categoryId: data.categoryId,
+      categoryId: data.categoryId || undefined,
+      dueDate: data.dueDate?.toISOString(),
     }
     createTaskMutation.mutate(body, {
       onSuccess: () => {
@@ -76,6 +81,7 @@ export default function AddTaskModal({
         <Field>
           <Label>Category</Label>
           <Select {...register('categoryId')}>
+            <option value="">No category</option>
             {categories.map((category) => {
               return (
                 <option key={category.id} value={category.id}>
@@ -97,6 +103,17 @@ export default function AddTaskModal({
               )
             })}
           </Select>
+        </Field>
+
+        <Field>
+          <Label>Due Date</Label>
+          <Controller
+            control={control}
+            name="dueDate"
+            render={({ field }) => (
+              <DatePicker value={field.value} onChange={field.onChange} placeholder="Due date" />
+            )}
+          />
         </Field>
 
         <Button type="submit" className="w-full" disabled={createTaskMutation.isPending}>

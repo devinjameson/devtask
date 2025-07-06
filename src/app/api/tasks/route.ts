@@ -24,6 +24,7 @@ export type CreateTaskBody = {
   statusId: string
   description?: string
   categoryId?: string
+  dueDate?: string
 }
 
 export type CreateTaskResultData = { task: Task }
@@ -33,14 +34,14 @@ export async function POST(req: Request): Promise<NextResponse<CreateTaskResult>
   return await Effect.gen(function* () {
     yield* AuthUserService.getAuthUser
     const profileId = yield* ProfileService.getActiveProfileId
-    const { title, description, statusId, categoryId }: CreateTaskBody = yield* Effect.tryPromise(
-      () => req.json(),
-    )
+    const { title, description, statusId, categoryId, dueDate }: CreateTaskBody =
+      yield* Effect.tryPromise(() => req.json())
     const task = yield* TaskService.createTask({
       title,
       description,
       statusId,
       categoryId,
+      dueDate,
       profileId,
     })
     return { task }
