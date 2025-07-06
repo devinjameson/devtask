@@ -5,6 +5,7 @@ import { Category, Status } from '@/generated/prisma'
 import { PlusIcon } from '@heroicons/react/24/solid'
 import { useState } from 'react'
 import AddTaskModal from './AddTaskModal'
+import TaskCard from './TaskCard'
 
 export default function TaskBoard({
   tasks,
@@ -55,13 +56,7 @@ export default function TaskBoard({
               {tasks
                 .filter((task) => task.statusId === status.id)
                 .map((task) => (
-                  <li
-                    key={task.id}
-                    className="rounded-lg bg-white shadow p-3 hover:bg-blue-50 hover:shadow-md transition"
-                  >
-                    <h3 className="font-medium mb-1">{task.title}</h3>
-                    <p className="text-sm text-gray-500">{task.category?.name}</p>
-                  </li>
+                  <TaskCard key={task.id} task={task} />
                 ))}
             </ul>
           </section>
