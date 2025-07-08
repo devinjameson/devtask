@@ -30,7 +30,7 @@ Keep these areound for the next step
 ### Set up environment variables
 
 ```sh
-cp .env.local.example .env
+cp .env.example .env
 ```
 
 Replace the placeholder values in `.env` with your actual Supabase project credentials.

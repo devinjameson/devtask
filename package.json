@@ -9,7 +9,12 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "db:reset:local": "bash scripts/db-reset-local.sh"
+    "db:reset:local": "bash scripts/db-reset-local.sh",
+    "test": "dotenv -e .env.test -- vitest",
+    "test:ui": "dotenv -e .env.test -- vitest --ui",
+    "test:run": "dotenv -e .env.test -- vitest run",
+    "test:server": "dotenv -e .env.test -- next dev --port 3001",
+    "test:db:push": "dotenv -e .env.test -- prisma db push"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -43,6 +48,8 @@
     "@types/react-dom": "^19",
     "@typescript-eslint/eslint-plugin": "^8.35.0",
     "@typescript-eslint/parser": "^8.35.0",
+    "@vitest/ui": "^3.2.4",
+    "dotenv-cli": "^8.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
     "eslint-plugin-react": "^7.37.5",
@@ -50,6 +57,7 @@
     "prisma": "^6.10.1",
     "tailwindcss": "^4",
     "tsx": "^4.20.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

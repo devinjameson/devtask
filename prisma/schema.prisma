@@ -22,14 +22,14 @@ model User {
 model Profile {
   id     String @id @default(uuid())
   name   String
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
 
   tasks      Task[]
   categories Category[]
+  statuses   Status[]
 
   createdAt DateTime @default(now())
-  status    Status[]
 }
 
 model Task {
@@ -39,13 +39,13 @@ model Task {
   dueDate     DateTime?
 
   profileId String
-  profile   Profile @relation(fields: [profileId], references: [id])
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   statusId String
-  status   Status @relation(fields: [statusId], references: [id])
+  status   Status @relation(fields: [statusId], references: [id], onDelete: Cascade)
 
   categoryId String?
-  category   Category? @relation(fields: [categoryId], references: [id])
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   order Int
 
@@ -62,7 +62,7 @@ model Category {
   tasks Task[]
 
   profileId String
-  profile   Profile @relation(fields: [profileId], references: [id])
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 }
@@ -71,7 +71,7 @@ model Status {
   id   String @id @default(uuid())
   name String @unique
 
-  profile   Profile @relation(fields: [profileId], references: [id])
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   profileId String
 
   tasks Task[]

@@ -66,7 +66,15 @@ export const createTask = (
             },
           })
         }),
-      catch: () => ({ message: 'Failed createTask', status: 500 }),
+      catch: (error) => {
+        console.error('TaskService.createTask error:', error)
+        if (error && typeof error === 'object' && 'code' in error) {
+          if (error.code === 'P2002') {
+            return { message: 'Unique constraint violation on (statusId, order)', status: 409 }
+          }
+        }
+        return { message: `Failed createTask: ${error}`, status: 500 }
+      },
     })
 
     return newTask
