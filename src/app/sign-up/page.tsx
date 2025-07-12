@@ -11,7 +11,7 @@ import Spinner from '@/ui/Spinner'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { CreateUserBody, CreateUserResultData } from '../api/user/create/route'
-import { fetchApi } from '@/lib/api/fetchApi'
+import { fetchApi } from '@core/api/fetchApi'
 
 export default function SignUp() {
   const router = useRouter()

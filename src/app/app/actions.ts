@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
-import { ACTIVE_PROFILE_COOKIE } from '@/lib/constants'
+import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 import { redirect } from 'next/navigation'
 
 export async function signOut() {

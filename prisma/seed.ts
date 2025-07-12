@@ -48,7 +48,7 @@ async function main() {
 
   await prisma.status.createMany({
     data: [
-      { name: 'Backlog', profileId: profile.id },
+      { name: 'Pending', profileId: profile.id },
       { name: 'In Progress', profileId: profile.id },
       { name: 'Done', profileId: profile.id },
     ],
@@ -58,7 +58,7 @@ async function main() {
   const statuses = await prisma.status.findMany()
 
   const [backlog, inProgress, done] = [
-    statuses.find((s) => s.name === 'Backlog')!,
+    statuses.find((s) => s.name === 'Pending')!,
     statuses.find((s) => s.name === 'In Progress')!,
     statuses.find((s) => s.name === 'Done')!,
   ]

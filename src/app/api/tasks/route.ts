@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { ApiResult } from '@lib/api/apiResult'
+import { ApiResult } from '@core/api/apiResult'
 import { Task } from '@/generated/prisma'
-import { AuthUserService, ProfileService, TaskService } from '@lib/api/service'
+import { AuthUserService, ProfileService, TaskService } from '@core/api/service'
 import { Effect } from 'effect'
-import { unknownExceptionToServiceException } from '@lib/api/serviceException'
-import { serviceResultToNextResponse } from '@lib/api/serviceResultToNextResponse'
+import { unknownExceptionToServiceException } from '@core/api/serviceException'
+import { serviceResultToNextResponse } from '@core/api/serviceResultToNextResponse'
 
-export type { TaskWithRelations } from '@lib/api/service/taskService'
+export type { TaskWithRelations } from '@core/api/service/taskService'
 export type GetTasksResultData = { tasks: TaskService.TaskWithRelations[] }
 export type GetTasksResult = ApiResult<GetTasksResultData>
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AsyncResult } from '@/lib'
+import { AsyncResult } from '@core'
 import { Session } from '@supabase/supabase-js'
 import { Option } from 'effect'
 import { supabase } from '../supabase/client'

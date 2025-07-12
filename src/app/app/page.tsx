@@ -1,6 +1,6 @@
 'use client'
 
-import { AsyncResult } from '@/lib'
+import { AsyncResult } from '@core'
 import { useTasks } from './useTasks'
 import TaskBoard from './TaskBoard'
 import { useStatuses } from './useStatuses'

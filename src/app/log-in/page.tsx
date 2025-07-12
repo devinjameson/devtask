@@ -10,7 +10,7 @@ import { Strong, Text, TextLink } from '@/ui/catalyst/text'
 import Spinner from '@/ui/Spinner'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { fetchApi } from '@/lib/api/fetchApi'
+import { fetchApi } from '@core/api/fetchApi'
 
 export default function LogIn() {
   const router = useRouter()

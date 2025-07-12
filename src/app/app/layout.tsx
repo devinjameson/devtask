@@ -1,7 +1,7 @@
 'use client'
 
 import { useSession } from '@/lib/auth/useSession'
-import { AsyncResult } from '@/lib'
+import { AsyncResult } from '@core'
 import { Option } from 'effect'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'

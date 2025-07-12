@@ -1,6 +1,6 @@
 import { GetProfilesResultData } from '@/app/api/profiles/route'
 import { Profile } from '@/generated/prisma'
-import { fetchApi } from '@lib/api/fetchApi'
+import { fetchApi } from '@core/api/fetchApi'
 import { useQuery } from '@tanstack/react-query'
 
 const fetchProfiles = async (): Promise<Profile[]> => {

@@ -1,6 +1,6 @@
 import { GetStatusesResultData } from '@/app/api/statuses/route'
 import { Status } from '@/generated/prisma'
-import { fetchApi } from '@lib/api/fetchApi'
+import { fetchApi } from '@core/api/fetchApi'
 import { useQuery, UseQueryOptions } from '@tanstack/react-query'
 
 const fetchStatuses = async (): Promise<Status[]> => {
