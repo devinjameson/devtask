@@ -2,8 +2,8 @@ import { cookies } from 'next/headers'
 import { Effect } from 'effect'
 import { UnknownException } from 'effect/Cause'
 import { ServiceException } from '../serviceException'
-import { ACTIVE_PROFILE_COOKIE } from '@/lib/constants'
-import { prisma } from '@/lib/prisma'
+import { ACTIVE_PROFILE_COOKIE } from '@lib/constants'
+import { prisma } from '@lib/prisma'
 import { Profile } from '@/generated/prisma'
 
 export const getActiveProfileId: Effect.Effect<string, ServiceException | UnknownException> =

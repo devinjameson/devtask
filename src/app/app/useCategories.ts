@@ -1,5 +1,5 @@
 import { Category } from '@/generated/prisma'
-import { fetchApi } from '@/lib/api/fetchApi'
+import { fetchApi } from '@lib/api/fetchApi'
 import { useQuery } from '@tanstack/react-query'
 import { GetCategoriesResultData } from '../api/categories/route'
 

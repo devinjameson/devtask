@@ -1,5 +1,6 @@
-import { PrismaClient } from '@/generated/prisma'
-import { createClient } from '@supabase/supabase-js'
+import { Prisma, PrismaClient, User } from '@/generated/prisma'
+import { ACTIVE_PROFILE_COOKIE } from '@lib/constants'
+import { User as AuthUser, createClient, Session } from '@supabase/supabase-js'
 
 export const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,7 +15,7 @@ export const supabaseAdmin = createClient(
 
 export const prisma = new PrismaClient()
 
-export async function resetDb() {
+export const resetDb = async () => {
   const {
     data: { users },
   } = await supabaseAdmin.auth.admin.listUsers()
@@ -25,7 +26,20 @@ export async function resetDb() {
   await prisma.user.deleteMany()
 }
 
-export async function createTestUser() {
+export type ProfileWithRelations = Prisma.ProfileGetPayload<{
+  include: {
+    categories: true
+    statuses: true
+  }
+}>
+
+export const createTestUser = async (): Promise<{
+  authUser: AuthUser
+  user: User
+  session: Session
+  profile: ProfileWithRelations
+  cookies: string
+}> => {
   const timestamp = Date.now()
   const email = `test-${timestamp}@example.com`
   const password = 'testpass123'
@@ -71,7 +85,6 @@ export async function createTestUser() {
     },
   })
 
-  // Create a regular client for sign-in (not admin)
   const supabaseClient = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -82,9 +95,27 @@ export async function createTestUser() {
     password,
   })
 
+  const session = signInData.session
+  if (!session) {
+    throw new Error('Failed to sign in test user')
+  }
+
+  const profile = user.profiles[0]
+  if (!profile) {
+    throw new Error('No profile found for test user')
+  }
+
+  const sessionCookie = Buffer.from(JSON.stringify(session)).toString('base64')
+  const cookies = [
+    `sb-127-auth-token=base64-${sessionCookie}`,
+    `${ACTIVE_PROFILE_COOKIE}=${profile.id}`,
+  ].join('; ')
+
   return {
+    authUser,
     user,
-    session: signInData.session!,
-    authUser: authUser,
+    session,
+    profile,
+    cookies,
   }
 }

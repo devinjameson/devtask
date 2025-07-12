@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { ApiResult } from '@/lib/api/apiResult'
-import { AuthUserService, ProfileService } from '@/lib/api/service'
+import { ApiResult } from '@lib/api/apiResult'
+import { AuthUserService, ProfileService } from '@lib/api/service'
 import { Array, Effect } from 'effect'
-import { unknownExceptionToServiceException } from '@/lib/api/serviceException'
-import { serviceResultToNextResponse } from '@/lib/api/serviceResultToNextResponse'
+import { unknownExceptionToServiceException } from '@lib/api/serviceException'
+import { serviceResultToNextResponse } from '@lib/api/serviceResultToNextResponse'
 import { cookies } from 'next/headers'
-import { ACTIVE_PROFILE_COOKIE } from '@/lib/constants'
+import { ACTIVE_PROFILE_COOKIE } from '@lib/constants'
 
 export type AuthCallbackResult = ApiResult<null>
 

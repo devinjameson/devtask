@@ -1,7 +1,7 @@
 import { Effect } from 'effect'
 import { UnknownException } from 'effect/Cause'
 import { ServiceException } from '../serviceException'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@lib/prisma'
 import { Category } from '@/generated/prisma'
 
 export const listCategories = (

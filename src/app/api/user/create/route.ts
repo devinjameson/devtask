@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ApiResult } from '@/lib/api/apiResult'
-import { AuthUserService, UserService } from '@/lib/api/service'
+import { ApiResult } from '@lib/api/apiResult'
+import { AuthUserService, UserService } from '@lib/api/service'
 import { Effect } from 'effect'
-import { unknownExceptionToServiceException } from '@/lib/api/serviceException'
-import { serviceResultToNextResponse } from '@/lib/api/serviceResultToNextResponse'
+import { unknownExceptionToServiceException } from '@lib/api/serviceException'
+import { serviceResultToNextResponse } from '@lib/api/serviceResultToNextResponse'
 
 export type CreateUserBody = {
   firstName: string

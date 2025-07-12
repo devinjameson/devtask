@@ -1,10 +1,10 @@
 import { Status } from '@/generated/prisma'
-import { ApiResult } from '@/lib/api/apiResult'
+import { ApiResult } from '@lib/api/apiResult'
 import { NextResponse } from 'next/server'
-import { AuthUserService, ProfileService, StatusService } from '@/lib/api/service'
+import { AuthUserService, ProfileService, StatusService } from '@lib/api/service'
 import { Effect } from 'effect'
-import { unknownExceptionToServiceException } from '@/lib/api/serviceException'
-import { serviceResultToNextResponse } from '@/lib/api/serviceResultToNextResponse'
+import { unknownExceptionToServiceException } from '@lib/api/serviceException'
+import { serviceResultToNextResponse } from '@lib/api/serviceResultToNextResponse'
 
 export type GetStatusesResultData = { statuses: Status[] }
 export type GetStatusesResult = ApiResult<GetStatusesResultData>
