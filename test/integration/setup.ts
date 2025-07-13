@@ -1,5 +1,6 @@
 import { beforeEach, afterAll } from 'vitest'
-import { resetDb, prisma } from './helpers/db'
+import { resetDb } from './helpers/db'
+import { prisma } from '@core/prisma'
 
 beforeEach(async () => {
   await resetDb()

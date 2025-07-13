@@ -1,7 +1,8 @@
-import { Prisma, PrismaClient, User } from '@/generated/prisma'
+import { Prisma, User } from '@/generated/prisma'
 import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 import { AuthUser } from '@core/api/authUser'
 import { createClient, Session } from '@supabase/supabase-js'
+import { prisma } from '@core/prisma'
 
 export const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,8 +14,6 @@ export const supabaseAdmin = createClient(
     },
   },
 )
-
-export const prisma = new PrismaClient()
 
 export const resetDb = async () => {
   const {
