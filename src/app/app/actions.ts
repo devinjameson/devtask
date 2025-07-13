@@ -1,9 +1,10 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
-import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+
+import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 
 export async function signOut() {
   const cookieStore = await cookies()

@@ -1,10 +1,11 @@
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { Array, Effect } from 'effect'
+
 import { ApiResult } from '@core/api/apiResult'
 import { AuthUserService, ProfileService } from '@core/api/service'
-import { Array, Effect } from 'effect'
 import { unknownExceptionToServiceException } from '@core/api/serviceException'
 import { serviceResultToNextResponse } from '@core/api/serviceResultToNextResponse'
-import { cookies } from 'next/headers'
 import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 
 export type AuthCallbackResult = ApiResult<null>

@@ -1,8 +1,11 @@
 import { Effect } from 'effect'
 import { UnknownException } from 'effect/Cause'
-import { ServiceException } from '../serviceException'
+
 import { prisma } from '@core/prisma'
+
 import { Prisma } from '@/generated/prisma'
+
+import { ServiceException } from '../serviceException'
 
 export type UserWithProfiles = Prisma.UserGetPayload<{
   include: {

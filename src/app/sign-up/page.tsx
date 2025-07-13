@@ -1,6 +1,11 @@
 'use client'
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
+
+import { fetchApi } from '@core/api/fetchApi'
+
 import { AuthLayout } from '@/ui/catalyst/auth-layout'
 import { Button } from '@/ui/catalyst/button'
 import { Field, Label } from '@/ui/catalyst/fieldset'
@@ -8,10 +13,8 @@ import { Heading } from '@/ui/catalyst/heading'
 import { Input } from '@/ui/catalyst/input'
 import { Strong, Text, TextLink } from '@/ui/catalyst/text'
 import Spinner from '@/ui/Spinner'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+
 import { CreateUserBody, CreateUserResultData } from '../api/user/create/route'
-import { fetchApi } from '@core/api/fetchApi'
 
 export default function SignUp() {
   const router = useRouter()

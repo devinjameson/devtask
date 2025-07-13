@@ -1,13 +1,15 @@
-import { describe, it, expect } from 'vitest'
-import { createTestUser } from '../helpers/db'
-import { expectSuccess, makeAuthenticatedRequest } from '../helpers/api'
+import { describe, expect, it } from 'vitest'
+
+import { MoveTaskBody, MoveTaskResultData } from '@/app/api/tasks/[id]/move/route'
 import {
   CreateTaskBody,
   CreateTaskResultData,
   GetTasksResultData,
   TaskWithRelations,
 } from '@/app/api/tasks/route'
-import { MoveTaskBody, MoveTaskResultData } from '@/app/api/tasks/[id]/move/route'
+
+import { expectSuccess, makeAuthenticatedRequest } from '../helpers/api'
+import { createTestUser } from '../helpers/db'
 
 describe('GET /tasks', () => {
   it('returns all tasks for the profile', async () => {

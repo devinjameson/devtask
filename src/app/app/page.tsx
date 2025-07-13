@@ -1,15 +1,17 @@
 'use client'
 
 import { AsyncResult } from '@core'
-import { useTasks } from './useTasks'
-import TaskBoard from './TaskBoard'
-import { useStatuses } from './useStatuses'
-import { useProfiles } from './useProfiles'
-import { Button } from '@/ui/catalyst/button'
-import { pipe } from 'effect'
-import { useCategories } from './useCategories'
 import { useQueryClient } from '@tanstack/react-query'
+import { pipe } from 'effect'
+
+import { Button } from '@/ui/catalyst/button'
+
 import { signOut } from './actions'
+import TaskBoard from './TaskBoard'
+import { useCategories } from './useCategories'
+import { useProfiles } from './useProfiles'
+import { useStatuses } from './useStatuses'
+import { useTasks } from './useTasks'
 
 export default function App() {
   const queryClient = useQueryClient()

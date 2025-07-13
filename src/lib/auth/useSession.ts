@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AsyncResult } from '@core'
 import { Session } from '@supabase/supabase-js'
 import { Option } from 'effect'
+
 import { supabase } from '../supabase/client'
 
 const fetchSession = async (): Promise<

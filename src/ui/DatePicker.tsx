@@ -1,12 +1,13 @@
 'use client'
 
-import { DayPicker, getDefaultClassNames } from 'react-day-picker'
-import { DateTime } from 'effect'
-import { CalendarIcon } from '@heroicons/react/16/solid'
-import { Input } from '@/ui/catalyst/input'
 import { forwardRef } from 'react'
-import clsx from 'clsx'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
+import { CalendarIcon } from '@heroicons/react/16/solid'
+import clsx from 'clsx'
+import { DateTime } from 'effect'
+import { DayPicker, getDefaultClassNames } from 'react-day-picker'
+
+import { Input } from '@/ui/catalyst/input'
 
 const defaultClassNames = getDefaultClassNames()
 

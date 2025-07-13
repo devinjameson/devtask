@@ -1,12 +1,13 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth/useSession'
 import { AsyncResult } from '@core'
 import { Option } from 'effect'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
-import Spinner from '@/ui/Spinner'
+
 import { Heading } from '@/ui/catalyst/heading'
+import Spinner from '@/ui/Spinner'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()

@@ -1,14 +1,17 @@
-import { TaskWithRelations } from '../api/tasks/route'
-import { Modal } from '@/ui/Modal'
+import { useEffect } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+
+import { Category, Status } from '@/generated/prisma'
+
+import { Button } from '@/ui/catalyst/button'
 import { ErrorMessage, Field, Label } from '@/ui/catalyst/fieldset'
 import { Input } from '@/ui/catalyst/input'
 import { Select } from '@/ui/catalyst/select'
 import { Textarea } from '@/ui/catalyst/textarea'
-import { Button } from '@/ui/catalyst/button'
 import { DatePicker } from '@/ui/DatePicker'
-import { useForm, Controller } from 'react-hook-form'
-import { useEffect } from 'react'
-import { Status, Category } from '@/generated/prisma'
+import { Modal } from '@/ui/Modal'
+
+import { TaskWithRelations } from '../api/tasks/route'
 
 type Inputs = {
   title: string

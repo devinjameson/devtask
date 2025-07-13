@@ -1,6 +1,8 @@
-import { GetTasksResultData, TaskWithRelations } from '@/app/api/tasks/route'
-import { fetchApi } from '@core/api/fetchApi'
 import { useQuery } from '@tanstack/react-query'
+
+import { fetchApi } from '@core/api/fetchApi'
+
+import { GetTasksResultData, TaskWithRelations } from '@/app/api/tasks/route'
 
 const fetchTasks = async (): Promise<TaskWithRelations[]> => {
   const result = await fetchApi<GetTasksResultData>(() => fetch('/api/tasks'))

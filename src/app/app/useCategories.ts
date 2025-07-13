@@ -1,6 +1,9 @@
-import { Category } from '@/generated/prisma'
-import { fetchApi } from '@core/api/fetchApi'
 import { useQuery } from '@tanstack/react-query'
+
+import { fetchApi } from '@core/api/fetchApi'
+
+import { Category } from '@/generated/prisma'
+
 import { GetCategoriesResultData } from '../api/categories/route'
 
 const fetchCategories = async (): Promise<Category[]> => {

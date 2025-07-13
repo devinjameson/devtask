@@ -1,9 +1,11 @@
 'use client'
 
-import { TaskWithRelations } from '@/app/api/tasks/route'
-import { Category, Status } from '@/generated/prisma'
-import { PlusIcon } from '@heroicons/react/24/solid'
 import { useState } from 'react'
+import { PlusIcon } from '@heroicons/react/24/solid'
+
+import { Category, Status } from '@/generated/prisma'
+import { TaskWithRelations } from '@/app/api/tasks/route'
+
 import AddTaskModal from './AddTaskModal'
 import TaskCard from './TaskCard'
 import TaskDetailsModal from './TaskDetailsModal'

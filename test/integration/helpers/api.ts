@@ -1,5 +1,6 @@
-import { ApiResult } from '@core/api/apiResult'
 import { expect } from 'vitest'
+
+import { ApiResult } from '@core/api/apiResult'
 
 export const TEST_BASE_URL = 'http://localhost:3001/api'
 

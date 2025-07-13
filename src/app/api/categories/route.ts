@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server'
-import { ApiResult } from '@core/api/apiResult'
-import { Category } from '@/generated/prisma'
-import { ProfileService, AuthUserService, CategoryService } from '@core/api/service'
 import { Effect } from 'effect'
+
+import { ApiResult } from '@core/api/apiResult'
+import { AuthUserService, CategoryService, ProfileService } from '@core/api/service'
 import { unknownExceptionToServiceException } from '@core/api/serviceException'
 import { serviceResultToNextResponse } from '@core/api/serviceResultToNextResponse'
+
+import { Category } from '@/generated/prisma'
 
 export type GetCategoriesResultData = { categories: Category[] }
 export type GetCategoriesResult = ApiResult<GetCategoriesResultData>

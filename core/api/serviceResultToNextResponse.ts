@@ -1,6 +1,7 @@
-import { Effect } from 'effect'
-import { ServiceException } from './serviceException'
 import { NextResponse } from 'next/server'
+import { Effect } from 'effect'
+
+import { ServiceException } from './serviceException'
 
 export const serviceResultToNextResponse =
   (successStatus?: number) =>

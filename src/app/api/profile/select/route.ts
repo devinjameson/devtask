@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Effect } from 'effect'
+
 import { ApiResult } from '@core/api/apiResult'
 import { AuthUserService, ProfileService } from '@core/api/service'
-import { Effect } from 'effect'
 import { unknownExceptionToServiceException } from '@core/api/serviceException'
 import { serviceResultToNextResponse } from '@core/api/serviceResultToNextResponse'
 

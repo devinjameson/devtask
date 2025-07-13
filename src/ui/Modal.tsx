@@ -1,8 +1,8 @@
 'use client'
 
-import { Dialog, DialogPanel, DialogTitle, DialogBackdrop, Description } from '@headlessui/react'
-import { XMarkIcon } from '@heroicons/react/24/solid'
 import { ReactNode } from 'react'
+import { Description, Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
+import { XMarkIcon } from '@heroicons/react/24/solid'
 
 type ModalProps = {
   open: boolean

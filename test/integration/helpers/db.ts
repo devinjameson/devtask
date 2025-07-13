@@ -1,8 +1,10 @@
-import { Prisma, User } from '@/generated/prisma'
-import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
-import { AuthUser } from '@core/api/authUser'
 import { createClient, Session } from '@supabase/supabase-js'
+
+import { AuthUser } from '@core/api/authUser'
+import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 import { prisma } from '@core/prisma'
+
+import { Prisma, User } from '@/generated/prisma'
 
 export const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
