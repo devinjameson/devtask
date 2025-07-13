@@ -20,8 +20,8 @@ import { serviceResultToNextResponse } from '@core/api/serviceResultToNextRespon
 // }
 
 export type MoveTaskBody = {
-  toIndex: number
-  toStatusId?: string
+  destinationIndex: number
+  destinationStatusId?: string
 }
 
 export type MoveTaskResultData = { task: Task }
@@ -38,12 +38,14 @@ export async function PATCH(
   return await Effect.gen(function* () {
     yield* AuthUserService.getAuthUser
     const profileId = yield* ProfileService.getActiveProfileId
-    const { toIndex, toStatusId }: MoveTaskBody = yield* Effect.tryPromise(() => req.json())
+    const { destinationIndex, destinationStatusId }: MoveTaskBody = yield* Effect.tryPromise(() =>
+      req.json(),
+    )
     const task = yield* TaskService.moveTask({
       profileId,
       taskId,
-      toIndex,
-      toStatusId,
+      destinationIndex,
+      destinationStatusId,
     })
     return { task }
   }).pipe(unknownExceptionToServiceException, serviceResultToNextResponse(200), Effect.runPromise)
