@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { createTestUser } from '../helpers/db'
 import { expectSuccess, makeAuthenticatedRequest } from '../helpers/api'
-import { CreateTaskBody, GetTasksResultData } from '@/app/api/tasks/route'
+import { CreateTaskBody, CreateTaskResultData, GetTasksResultData } from '@/app/api/tasks/route'
+import { MoveTaskBody, MoveTaskResultData } from '@/app/api/tasks/[id]/move/route'
 
-describe('GET /api/tasks', () => {
+describe('GET /tasks', () => {
   it('returns all tasks for the profile', async () => {
     const { profile, cookies } = await createTestUser()
 
@@ -17,7 +18,7 @@ describe('GET /api/tasks', () => {
       categoryId: category.id,
     }
     const firstCreateResponse = await makeAuthenticatedRequest(
-      '/api/tasks',
+      '/tasks',
       { method: 'POST', body: JSON.stringify(firstBody) },
       cookies,
     )
@@ -30,13 +31,13 @@ describe('GET /api/tasks', () => {
       categoryId: category.id,
     }
     const secondCreateResponse = await makeAuthenticatedRequest(
-      '/api/tasks',
+      '/tasks',
       { method: 'POST', body: JSON.stringify(secondBody) },
       cookies,
     )
     expectSuccess(secondCreateResponse, 201)
 
-    const getResponse = await makeAuthenticatedRequest('/api/tasks', { method: 'GET' }, cookies)
+    const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
     const { tasks } = await expectSuccess<GetTasksResultData>(getResponse)
 
     expect(tasks.length).toBe(2)
@@ -58,14 +59,14 @@ describe('GET /api/tasks', () => {
   it('returns an empty array when no tasks exist', async () => {
     const { cookies } = await createTestUser()
 
-    const getResponse = await makeAuthenticatedRequest('/api/tasks', { method: 'GET' }, cookies)
+    const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
     const { tasks } = await expectSuccess<GetTasksResultData>(getResponse)
 
     expect(tasks).toEqual([])
   })
 })
 
-describe('POST /api/tasks', () => {
+describe('POST /tasks', () => {
   it('creates a new task', async () => {
     const { profile, cookies } = await createTestUser()
 
@@ -79,13 +80,13 @@ describe('POST /api/tasks', () => {
       categoryId: category.id,
     }
     const createResponse = await makeAuthenticatedRequest(
-      '/api/tasks',
+      '/tasks',
       { method: 'POST', body: JSON.stringify(createBody) },
       cookies,
     )
     expectSuccess(createResponse, 201)
 
-    const getResponse = await makeAuthenticatedRequest('/api/tasks', { method: 'GET' }, cookies)
+    const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
     const { tasks } = await expectSuccess<GetTasksResultData>(getResponse)
 
     const firstTask = tasks[0]!
@@ -94,5 +95,71 @@ describe('POST /api/tasks', () => {
     expect(firstTask.description).toBe(createBody.description)
     expect(firstTask.statusId).toBe(createBody.statusId)
     expect(firstTask.categoryId).toBe(createBody.categoryId)
+  })
+})
+
+describe('PATCH /tasks/:id/move', () => {
+  it('moves a task', async () => {
+    const { profile, cookies } = await createTestUser()
+
+    const pendingStatus = profile.statuses.find(({ name }) => name === 'Pending')!
+    const inProgressStatus = profile.statuses.find(({ name }) => name === 'In Progress')!
+    const completedStatus = profile.statuses.find(({ name }) => name === 'Completed')!
+
+    const createBodies: CreateTaskBody[] = [
+      { title: 'Task F', statusId: completedStatus.id },
+      { title: 'Task E', statusId: completedStatus.id },
+      { title: 'Task D', statusId: inProgressStatus.id },
+      { title: 'Task C', statusId: pendingStatus.id },
+      { title: 'Task B', statusId: pendingStatus.id },
+      { title: 'Task A', statusId: pendingStatus.id },
+    ]
+
+    const tasksWithIds = []
+    for (const createBody of createBodies) {
+      const createResponse = await makeAuthenticatedRequest(
+        '/tasks',
+        { method: 'POST', body: JSON.stringify(createBody) },
+        cookies,
+      )
+      const {
+        task: { id },
+      } = await expectSuccess<CreateTaskResultData>(createResponse, 201)
+      tasksWithIds.push({ id, title: createBody.title })
+    }
+
+    const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
+    const { tasks: initialTasks } = await expectSuccess<GetTasksResultData>(getResponse)
+
+    const initialPendingTasks = initialTasks.filter((task) => task.statusId === pendingStatus.id)
+    const initialInProgressTasks = initialTasks.filter(
+      (task) => task.statusId === inProgressStatus.id,
+    )
+    const initialCompletedTasks = initialTasks.filter(
+      (task) => task.statusId === completedStatus.id,
+    )
+
+    expect(initialPendingTasks.map(({ title }) => title)).toEqual(['Task A', 'Task B', 'Task C'])
+    expect(initialInProgressTasks.map(({ title }) => title)).toEqual(['Task D'])
+    expect(initialCompletedTasks.map(({ title }) => title)).toEqual(['Task E', 'Task F'])
+
+    const taskB = tasksWithIds.find((task) => task.title === 'Task B')!
+    const moveBody: MoveTaskBody = {
+      toIndex: 0,
+    }
+    const moveResponse = await makeAuthenticatedRequest(
+      `/tasks/${taskB.id}/move`,
+      { method: 'PATCH', body: JSON.stringify(moveBody) },
+      cookies,
+    )
+    expectSuccess<MoveTaskResultData>(moveResponse)
+
+    const afterMoveResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
+    const { tasks: afterMoveTasks } = await expectSuccess<GetTasksResultData>(afterMoveResponse)
+    const finalPendingTasks = afterMoveTasks.filter((task) => task.statusId === pendingStatus.id)
+    expect(finalPendingTasks.map(({ title }) => title)).toEqual(['Task A', 'Task C', 'Task B'])
+
+    const movedTask = finalPendingTasks.find((t) => t.title === 'Task B')!
+    expect(movedTask.order).toBe(0)
   })
 })

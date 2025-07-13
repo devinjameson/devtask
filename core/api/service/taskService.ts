@@ -39,10 +39,6 @@ export const createTask = (
   payload: CreateTaskPayload,
 ): Effect.Effect<Task, ServiceException | UnknownException> =>
   Effect.gen(function* () {
-    if (!payload.title || !payload.statusId) {
-      return yield* Effect.fail({ message: 'Missing required fields', status: 400 })
-    }
-
     const newTask = yield* Effect.tryPromise({
       try: () =>
         prisma.$transaction(async (tx) => {
@@ -66,16 +62,97 @@ export const createTask = (
             },
           })
         }),
-      catch: (error) => {
-        console.error('TaskService.createTask error:', error)
-        if (error && typeof error === 'object' && 'code' in error) {
-          if (error.code === 'P2002') {
-            return { message: 'Unique constraint violation on (statusId, order)', status: 409 }
-          }
-        }
-        return { message: `Failed createTask: ${error}`, status: 500 }
+      catch: () => {
+        return { message: `Failed createTask`, status: 500 }
       },
     })
 
     return newTask
+  })
+
+type MoveTaskPayload = {
+  profileId: string
+  taskId: string
+  toIndex: number
+  toStatusId?: string
+}
+export const moveTask = (
+  payload: MoveTaskPayload,
+): Effect.Effect<Task, ServiceException | UnknownException> =>
+  Effect.gen(function* () {
+    const updatedTask = yield* Effect.tryPromise({
+      try: () =>
+        prisma.$transaction(async (tx) => {
+          const task = await tx.task.findUnique({
+            where: { id: payload.taskId, profileId: payload.profileId },
+          })
+
+          if (!task) {
+            throw new Error('Task not found')
+          }
+
+          const fromStatusId = task.statusId
+          const toStatusId = payload.toStatusId ?? fromStatusId
+
+          const movingToDifferentStatus = toStatusId !== fromStatusId
+
+          if (movingToDifferentStatus) {
+            await tx.task.updateMany({
+              where: {
+                statusId: fromStatusId,
+                order: { gt: task.order },
+              },
+              data: { order: { decrement: 1 } },
+            })
+            
+            await tx.task.updateMany({
+              where: {
+                statusId: toStatusId,
+                order: { gte: payload.toIndex },
+              },
+              data: { order: { increment: 1 } },
+            })
+          } else {
+            const movingUp = payload.toIndex > task.order
+
+            if (movingUp) {
+              await tx.task.updateMany({
+                where: {
+                  statusId: toStatusId,
+                  order: { gt: task.order, lte: payload.toIndex },
+                  id: { not: payload.taskId },
+                },
+                data: { order: { decrement: 1 } },
+              })
+            } else {
+              await tx.task.update({
+                where: { id: payload.taskId },
+                data: { order: -1 },
+              })
+
+              await tx.task.updateMany({
+                where: {
+                  statusId: toStatusId,
+                  order: { gte: payload.toIndex },
+                },
+                data: { order: { increment: 1 } },
+              })
+            }
+          }
+
+          return tx.task.update({
+            where: { id: payload.taskId },
+            data: {
+              statusId: toStatusId,
+              order: payload.toIndex,
+            },
+          })
+        }),
+      catch: () => ({
+        message: `Failed moveTask`,
+        status: 500,
+      }),
+    })
+
+    return updatedTask
   })
