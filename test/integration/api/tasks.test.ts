@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import { createTestUser } from '../helpers/db'
 import { expectSuccess, makeAuthenticatedRequest } from '../helpers/api'
-import { CreateTaskBody, CreateTaskResultData, GetTasksResultData } from '@/app/api/tasks/route'
+import {
+  CreateTaskBody,
+  CreateTaskResultData,
+  GetTasksResultData,
+  TaskWithRelations,
+} from '@/app/api/tasks/route'
 import { MoveTaskBody, MoveTaskResultData } from '@/app/api/tasks/[id]/move/route'
 
 describe('GET /tasks', () => {
@@ -162,9 +167,10 @@ describe('PATCH /tasks/:id/move', () => {
       const afterPendingTasks = afterTasks.filter(({ statusId }) => statusId === pendingStatus.id)
       expect(afterPendingTasks.map(({ title }) => title)).toEqual(['Task A', 'Task C', 'Task B'])
 
-      const movedTaskB = afterPendingTasks.find(({ title }) => title === 'Task B')!
-      const taskC = afterPendingTasks.find(({ title }) => title === 'Task C')!
-      const taskA = afterPendingTasks.find(({ title }) => title === 'Task A')!
+      const movedTaskB = findTask(afterPendingTasks, 'Task B')
+      const taskC = findTask(afterPendingTasks, 'Task C')
+      const taskA = findTask(afterPendingTasks, 'Task A')
+
       expect(movedTaskB.order).toBe(0)
       expect(taskC.order).toBe(1)
       expect(taskA.order).toBe(2)
@@ -189,9 +195,10 @@ describe('PATCH /tasks/:id/move', () => {
       const afterPendingTasks = afterTasks.filter(({ statusId }) => statusId === pendingStatus.id)
       expect(afterPendingTasks.map(({ title }) => title)).toEqual(['Task C', 'Task A', 'Task B'])
 
-      const taskB = afterPendingTasks.find(({ title }) => title === 'Task B')!
-      const taskA = afterPendingTasks.find(({ title }) => title === 'Task A')!
-      const movedTaskC = afterPendingTasks.find(({ title }) => title === 'Task C')!
+      const taskB = findTask(afterPendingTasks, 'Task B')
+      const taskA = findTask(afterPendingTasks, 'Task A')
+      const movedTaskC = findTask(afterPendingTasks, 'Task C')
+
       expect(taskB.order).toBe(0)
       expect(taskA.order).toBe(1)
       expect(movedTaskC.order).toBe(2)
@@ -220,18 +227,25 @@ describe('PATCH /tasks/:id/move', () => {
       )
 
       expect(afterPendingTasks.map(({ title }) => title)).toEqual(['Task C', 'Task B'])
-      const taskB = afterPendingTasks.find(({ title }) => title === 'Task B')!
-      const taskC = afterPendingTasks.find(({ title }) => title === 'Task C')!
+
+      const taskB = findTask(afterPendingTasks, 'Task B')
+      const taskC = findTask(afterPendingTasks, 'Task C')
+
       expect(taskB.order).toBe(0)
       expect(taskC.order).toBe(1)
 
       expect(afterCompletedTasks.map(({ title }) => title)).toEqual(['Task E', 'Task A', 'Task F'])
-      const taskF = afterCompletedTasks.find(({ title }) => title === 'Task F')!
-      const movedTaskA = afterCompletedTasks.find(({ title }) => title === 'Task A')!
-      const taskE = afterCompletedTasks.find(({ title }) => title === 'Task E')!
+
+      const taskF = findTask(afterCompletedTasks, 'Task F')
+      const movedTaskA = findTask(afterCompletedTasks, 'Task A')
+      const taskE = findTask(afterCompletedTasks, 'Task E')
+
       expect(taskF.order).toBe(0)
       expect(movedTaskA.order).toBe(1)
       expect(taskE.order).toBe(2)
     }
   })
 })
+
+const findTask = (tasks: TaskWithRelations[], title: string): TaskWithRelations =>
+  tasks.find((task) => task.title === title)!
