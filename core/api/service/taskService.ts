@@ -104,7 +104,7 @@ export const moveTask = (
               },
               data: { order: { decrement: 1 } },
             })
-            
+
             await tx.task.updateMany({
               where: {
                 statusId: toStatusId,
