@@ -6,19 +6,6 @@ import { Effect } from 'effect'
 import { unknownExceptionToServiceException } from '@core/api/serviceException'
 import { serviceResultToNextResponse } from '@core/api/serviceResultToNextResponse'
 
-// export type { TaskWithRelations } from '@core/api/service/taskService'
-// export type GetTasksResultData = { tasks: TaskService.TaskWithRelations[] }
-// export type GetTasksResult = ApiResult<GetTasksResultData>
-//
-// export async function GET(): Promise<NextResponse<GetTasksResult>> {
-//   return await Effect.gen(function* () {
-//     yield* AuthUserService.getAuthUser
-//     const profileId = yield* ProfileService.getActiveProfileId
-//     const tasks = yield* TaskService.listTasks(profileId)
-//     return { tasks }
-//   }).pipe(unknownExceptionToServiceException, serviceResultToNextResponse(), Effect.runPromise)
-// }
-
 export type MoveTaskBody = {
   destinationIndex: number
   destinationStatusId?: string

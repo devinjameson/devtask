@@ -156,7 +156,7 @@ export const moveTask = (
               await tx.task.updateMany({
                 where: {
                   statusId: originStatusId,
-                  order: { gte: destinationOrder },
+                  order: { gte: destinationOrder, lt: originOrder },
                 },
                 data: { order: { increment: 1 } },
               })
