@@ -15,7 +15,7 @@ export const listTasks = (
       prisma.task.findMany({
         where: { profileId },
         include: { category: true, status: true },
-        orderBy: { order: 'desc' },
+        orderBy: { order: 'asc' },
       }),
     )
 
@@ -142,13 +142,20 @@ export const moveTask = (
                 data: { order: TEMP_ORDER },
               })
 
-              await tx.task.updateMany({
+              const tasksToDecrement = await tx.task.findMany({
                 where: {
                   statusId: originStatusId,
                   order: { gt: originOrder, lte: destinationOrder },
                 },
-                data: { order: { decrement: 1 } },
+                orderBy: { order: 'asc' },
               })
+
+              for (const task of tasksToDecrement) {
+                await tx.task.update({
+                  where: { id: task.id },
+                  data: { order: task.order - 1 },
+                })
+              }
             }),
             Match.when('ToLowerOrderInStatus', async () => {
               await tx.task.update({
@@ -156,13 +163,20 @@ export const moveTask = (
                 data: { order: TEMP_ORDER },
               })
 
-              await tx.task.updateMany({
+              const tasksToIncrement = await tx.task.findMany({
                 where: {
                   statusId: originStatusId,
                   order: { gte: destinationOrder, lt: originOrder },
                 },
-                data: { order: { increment: 1 } },
+                orderBy: { order: 'desc' },
               })
+
+              for (const task of tasksToIncrement) {
+                await tx.task.update({
+                  where: { id: task.id },
+                  data: { order: task.order + 1 },
+                })
+              }
             }),
             Match.when('ToDifferentStatus', async () => {
               await tx.task.update({
@@ -170,21 +184,35 @@ export const moveTask = (
                 data: { order: TEMP_ORDER },
               })
 
-              await tx.task.updateMany({
+              const tasksToDecrementInOrigin = await tx.task.findMany({
                 where: {
                   statusId: originStatusId,
                   order: { gt: originOrder },
                 },
-                data: { order: { decrement: 1 } },
+                orderBy: { order: 'asc' },
               })
 
-              await tx.task.updateMany({
+              for (const task of tasksToDecrementInOrigin) {
+                await tx.task.update({
+                  where: { id: task.id },
+                  data: { order: task.order - 1 },
+                })
+              }
+
+              const tasksToIncrementInDestination = await tx.task.findMany({
                 where: {
                   statusId: destinationStatusId,
                   order: { gte: destinationOrder },
                 },
-                data: { order: { increment: 1 } },
+                orderBy: { order: 'desc' },
               })
+
+              for (const task of tasksToIncrementInDestination) {
+                await tx.task.update({
+                  where: { id: task.id },
+                  data: { order: task.order + 1 },
+                })
+              }
             }),
             Match.exhaustive,
           )
@@ -199,10 +227,13 @@ export const moveTask = (
             },
           })
         }),
-      catch: () => ({
-        message: `Failed moveTask`,
-        status: 500,
-      }),
+      catch: (error) => {
+        console.error('moveTask transaction failed:', error)
+        return {
+          message: `Failed moveTask: ${error}`,
+          status: 500,
+        }
+      },
     })
 
     return updatedTask

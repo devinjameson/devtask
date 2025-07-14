@@ -1,8 +1,11 @@
 'use client'
 
+import { getCookie } from '@/lib/getCookie'
 import { AsyncResult } from '@core'
 import { useQueryClient } from '@tanstack/react-query'
 import { pipe } from 'effect'
+
+import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 
 import { Button } from '@/ui/catalyst/button'
 
@@ -16,7 +19,9 @@ import { useTasks } from './useTasks'
 export default function App() {
   const queryClient = useQueryClient()
 
-  const tasksQueryResult = useTasks()
+  const activeProfileId = getCookie(ACTIVE_PROFILE_COOKIE) ?? ''
+
+  const tasksQueryResult = useTasks({ profileId: activeProfileId })
   const asyncTasks = AsyncResult.fromQueryResult(tasksQueryResult)
 
   const statusesQueryResult = useStatuses()

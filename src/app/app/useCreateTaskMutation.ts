@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { CreateTaskBody, CreateTaskResult } from '../api/tasks/route'
 
-export const useCreateTaskMutation = () => {
+export const useCreateTaskMutation = ({ profileId }: { profileId: string }) => {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -24,7 +24,7 @@ export const useCreateTaskMutation = () => {
       return result
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['tasks', { profileId }] })
     },
   })
 }

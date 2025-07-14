@@ -1,16 +1,46 @@
+import { AnimateLayoutChanges, defaultAnimateLayoutChanges, useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import clsx from 'clsx'
+
 import { TaskWithRelations } from '../api/tasks/route'
+
+const animateLayoutChanges: AnimateLayoutChanges = (args) =>
+  defaultAnimateLayoutChanges({ ...args, wasDragging: true })
 
 export default function TaskCard({
   task,
   onClick,
+  className,
 }: {
   task: TaskWithRelations
   onClick: () => void
+  className?: string
 }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: task.id,
+    data: {
+      type: 'task',
+      task,
+    },
+    animateLayoutChanges,
+  })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
   return (
     <li
-      key={task.id}
-      className="rounded-lg bg-white shadow p-3 hover:bg-gray-100 hover:shadow-md transition"
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={clsx(
+        'rounded-lg bg-white shadow p-3 transition list-none hover:bg-gray-100',
+        { 'opacity-0': isDragging },
+        className,
+      )}
       onClick={onClick}
     >
       <h3 className="font-medium mb-1">{task.title}</h3>
