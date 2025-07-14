@@ -15,7 +15,7 @@ export const listTasks = (
       prisma.task.findMany({
         where: { profileId },
         include: { category: true, status: true },
-        orderBy: { order: 'desc' },
+        orderBy: { order: 'asc' },
       }),
     )
 

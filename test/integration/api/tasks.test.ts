@@ -49,8 +49,8 @@ describe('GET /tasks', () => {
 
     expect(tasks.length).toBe(2)
 
-    const secondTask = tasks[0]!
-    const firstTask = tasks[1]!
+    const firstTask = tasks[0]!
+    const secondTask = tasks[1]!
 
     expect(firstTask.title).toBe(firstBody.title)
     expect(firstTask.description).toBe(firstBody.description)
@@ -114,12 +114,12 @@ describe('PATCH /tasks/:id/move', () => {
     const completedStatus = profile.statuses.find(({ name }) => name === 'Completed')!
 
     const createBodies: CreateTaskBody[] = [
-      { title: 'Task F', statusId: completedStatus.id },
-      { title: 'Task E', statusId: completedStatus.id },
-      { title: 'Task D', statusId: inProgressStatus.id },
-      { title: 'Task C', statusId: pendingStatus.id },
-      { title: 'Task B', statusId: pendingStatus.id },
       { title: 'Task A', statusId: pendingStatus.id },
+      { title: 'Task B', statusId: pendingStatus.id },
+      { title: 'Task C', statusId: pendingStatus.id },
+      { title: 'Task D', statusId: inProgressStatus.id },
+      { title: 'Task E', statusId: completedStatus.id },
+      { title: 'Task F', statusId: completedStatus.id },
     ]
 
     const tasksWithIds = []
@@ -167,25 +167,25 @@ describe('PATCH /tasks/:id/move', () => {
       const { tasks: afterTasks } = await expectSuccess<GetTasksResultData>(afterGetResponse)
 
       const afterPendingTasks = afterTasks.filter(({ statusId }) => statusId === pendingStatus.id)
-      expect(afterPendingTasks.map(({ title }) => title)).toEqual(['Task A', 'Task C', 'Task B'])
+      expect(afterPendingTasks.map(({ title }) => title)).toEqual(['Task B', 'Task A', 'Task C'])
 
       const movedTaskB = findTask(afterPendingTasks, 'Task B')
-      const taskC = findTask(afterPendingTasks, 'Task C')
       const taskA = findTask(afterPendingTasks, 'Task A')
+      const taskC = findTask(afterPendingTasks, 'Task C')
 
       expect(movedTaskB.order).toBe(0)
-      expect(taskC.order).toBe(1)
-      expect(taskA.order).toBe(2)
+      expect(taskA.order).toBe(1)
+      expect(taskC.order).toBe(2)
     }
 
     {
       // Move up within status
-      const taskC = tasksWithIds.find((task) => task.title === 'Task C')!
+      const taskA = tasksWithIds.find((task) => task.title === 'Task A')!
       const moveBody: MoveTaskBody = {
         destinationIndex: 2,
       }
       const moveResponse = await makeAuthenticatedRequest(
-        `/tasks/${taskC.id}/move`,
+        `/tasks/${taskA.id}/move`,
         { method: 'PATCH', body: JSON.stringify(moveBody) },
         cookies,
       )
@@ -195,26 +195,26 @@ describe('PATCH /tasks/:id/move', () => {
       const { tasks: afterTasks } = await expectSuccess<GetTasksResultData>(afterGetResponse)
 
       const afterPendingTasks = afterTasks.filter(({ statusId }) => statusId === pendingStatus.id)
-      expect(afterPendingTasks.map(({ title }) => title)).toEqual(['Task C', 'Task A', 'Task B'])
+      expect(afterPendingTasks.map(({ title }) => title)).toEqual(['Task B', 'Task C', 'Task A'])
 
       const taskB = findTask(afterPendingTasks, 'Task B')
-      const taskA = findTask(afterPendingTasks, 'Task A')
-      const movedTaskC = findTask(afterPendingTasks, 'Task C')
+      const taskC = findTask(afterPendingTasks, 'Task C')
+      const movedTaskA = findTask(afterPendingTasks, 'Task A')
 
       expect(taskB.order).toBe(0)
-      expect(taskA.order).toBe(1)
-      expect(movedTaskC.order).toBe(2)
+      expect(taskC.order).toBe(1)
+      expect(movedTaskA.order).toBe(2)
     }
 
     {
       // Move to different status
-      const taskA = tasksWithIds.find((task) => task.title === 'Task A')!
+      const taskC = tasksWithIds.find((task) => task.title === 'Task C')!
       const moveBody: MoveTaskBody = {
         destinationIndex: 1,
         destinationStatusId: completedStatus.id,
       }
       const moveResponse = await makeAuthenticatedRequest(
-        `/tasks/${taskA.id}/move`,
+        `/tasks/${taskC.id}/move`,
         { method: 'PATCH', body: JSON.stringify(moveBody) },
         cookies,
       )
@@ -228,23 +228,23 @@ describe('PATCH /tasks/:id/move', () => {
         ({ statusId }) => statusId === completedStatus.id,
       )
 
-      expect(afterPendingTasks.map(({ title }) => title)).toEqual(['Task C', 'Task B'])
+      expect(afterPendingTasks.map(({ title }) => title)).toEqual(['Task B', 'Task A'])
 
       const taskB = findTask(afterPendingTasks, 'Task B')
-      const taskC = findTask(afterPendingTasks, 'Task C')
+      const taskA = findTask(afterPendingTasks, 'Task A')
 
       expect(taskB.order).toBe(0)
-      expect(taskC.order).toBe(1)
+      expect(taskA.order).toBe(1)
 
-      expect(afterCompletedTasks.map(({ title }) => title)).toEqual(['Task E', 'Task A', 'Task F'])
+      expect(afterCompletedTasks.map(({ title }) => title)).toEqual(['Task E', 'Task C', 'Task F'])
 
       const taskF = findTask(afterCompletedTasks, 'Task F')
-      const movedTaskA = findTask(afterCompletedTasks, 'Task A')
+      const movedTaskC = findTask(afterCompletedTasks, 'Task C')
       const taskE = findTask(afterCompletedTasks, 'Task E')
 
-      expect(taskF.order).toBe(0)
-      expect(movedTaskA.order).toBe(1)
-      expect(taskE.order).toBe(2)
+      expect(taskE.order).toBe(0)
+      expect(movedTaskC.order).toBe(1)
+      expect(taskF.order).toBe(2)
     }
   })
 })
