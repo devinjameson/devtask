@@ -1,7 +1,9 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import clsx from 'clsx'
 
 import { TaskWithRelations } from '../api/tasks/route'
+import { DragItem } from './dragItem'
 
 export default function TaskCard({
   task,
@@ -15,7 +17,7 @@ export default function TaskCard({
     data: {
       type: 'task',
       task,
-    },
+    } satisfies DragItem,
   })
 
   const style = {
@@ -29,9 +31,10 @@ export default function TaskCard({
       style={style}
       {...attributes}
       {...listeners}
-      className={`rounded-lg bg-white shadow p-3 hover:bg-gray-100 hover:shadow-md transition cursor-grab active:cursor-grabbing ${
-        isDragging ? 'opacity-50' : ''
-      }`}
+      className={clsx(
+        'rounded-lg bg-white shadow p-3 hover:bg-gray-100 hover:shadow-md transition cursor-grab active:cursor-grabbing',
+        { 'opacity-0': isDragging },
+      )}
       onClick={onClick}
     >
       <h3 className="font-medium mb-1">{task.title}</h3>
