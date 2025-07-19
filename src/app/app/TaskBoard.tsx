@@ -106,7 +106,7 @@ export default function TaskBoard({
       return
     }
 
-    const toNext = (prev: ItemsByStatus) => {
+    setItemsByStatus((prev) => {
       const overContainer = findStatus(overId, prev)
       const activeContainer = findStatus(active.id, prev)
 
@@ -148,9 +148,7 @@ export default function TaskBoard({
         [activeContainer]: nextActiveContainer,
         [overContainer]: nextOverContainer,
       }
-    }
-
-    setItemsByStatus(toNext)
+    })
   }
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
@@ -254,6 +252,26 @@ export default function TaskBoard({
   )
 }
 
+const isDraggingStatus = (id: UniqueIdentifier | null, itemsByStatus: ItemsByStatus) =>
+  id !== null && id in itemsByStatus
+
+const pointerOrRect = (args: Parameters<CollisionDetection>[0]) =>
+  pointerWithin(args).length ? pointerWithin(args) : rectIntersection(args)
+
+const closestCardInStatus = (
+  statusId: UniqueIdentifier,
+  taskIds: UniqueIdentifier[],
+  args: Parameters<CollisionDetection>[0],
+) => {
+  const droppableContainers = args.droppableContainers.filter(
+    ({ id }) => id !== statusId && taskIds.includes(id),
+  )
+  return closestCenter({
+    ...args,
+    droppableContainers,
+  })[0]?.id
+}
+
 const getCollisionDetectionStrategy =
   (
     activeId: UniqueIdentifier | null,
@@ -262,56 +280,27 @@ const getCollisionDetectionStrategy =
     recentlyMovedToNewContainer: RefObject<boolean>,
   ): CollisionDetection =>
   (args) => {
-    if (activeId && activeId in itemsByStatus) {
+    if (isDraggingStatus(activeId, itemsByStatus)) {
       return closestCenter({
         ...args,
-        droppableContainers: args.droppableContainers.filter(
-          (container) => container.id in itemsByStatus,
-        ),
+        droppableContainers: args.droppableContainers.filter((c) => c.id in itemsByStatus),
       })
     }
 
-    // Start by finding any intersecting droppable
-    const pointerIntersections = pointerWithin(args)
-    const intersections =
-      pointerIntersections.length > 0
-        ? // If there are droppables intersecting with the pointer, return those
-          pointerIntersections
-        : rectIntersection(args)
-    let overId = getFirstCollision(intersections, 'id')
+    let overId = getFirstCollision(pointerOrRect(args), 'id')
 
-    if (overId != null) {
+    if (overId !== null) {
       if (overId in itemsByStatus) {
-        const containerItems = itemsByStatus[overId]
-
-        // If a container is matched and it contains items
-        if (containerItems && containerItems.length > 0) {
-          // Return the closest droppable within that container
-          // NOTE: Closest corners will have at least one item
-          // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-          overId = closestCenter({
-            ...args,
-            droppableContainers: args.droppableContainers.filter(
-              (container) => container.id !== overId && containerItems.includes(container.id),
-            ),
-          })[0]?.id!
-        }
+        overId = closestCardInStatus(overId, itemsByStatus[overId]!, args) ?? overId
       }
-
       lastOverId.current = overId
-
       return [{ id: overId }]
     }
 
-    // When a draggable item moves to a new container, the layout may shift
-    // and the `overId` may become `null`. We manually set the cached `lastOverId`
-    // to the id of the draggable item that was moved to the new container, otherwise
-    // the previous `overId` will be returned which can cause items to incorrectly shift positions
     if (recentlyMovedToNewContainer.current) {
       lastOverId.current = activeId
     }
 
-    // If no droppable is matched, return the last match
     return lastOverId.current ? [{ id: lastOverId.current }] : []
   }
 
