@@ -1,29 +1,47 @@
-'use client'
-
-import { useState } from 'react'
+import { RefObject, useCallback, useRef, useState } from 'react'
 import {
-  closestCorners,
+  Active,
+  closestCenter,
+  CollisionDetection,
   DndContext,
   DragEndEvent,
   DragOverEvent,
   DragOverlay,
   DragStartEvent,
+  getFirstCollision,
+  MeasuringStrategy,
   MouseSensor,
+  Over,
+  pointerWithin,
+  rectIntersection,
   TouchSensor,
   UniqueIdentifier,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
+import { arrayMove } from '@dnd-kit/sortable'
+import { Array, Option, pipe, Record } from 'effect'
 
 import { Category, Status } from '@/generated/prisma'
 import { TaskWithRelations } from '@/app/api/tasks/route'
 
 import AddTaskModal from './AddTaskModal'
-import { isTaskItem } from './dragItem'
 import StatusColumn from './StatusColumn'
 import TaskCard from './TaskCard'
 import TaskDetailsModal from './TaskDetailsModal'
 import { useMoveTaskMutation } from './useMoveTaskMutation'
+
+type ItemsByStatus = Record<UniqueIdentifier, UniqueIdentifier[]>
+
+const findStatus = (id: UniqueIdentifier, itemsByStatus: ItemsByStatus) => {
+  const isStatusId = id in itemsByStatus
+
+  if (isStatusId) {
+    return id
+  } else {
+    return Object.keys(itemsByStatus).find((key) => itemsByStatus[key]?.includes(id))
+  }
+}
 
 export default function TaskBoard({
   tasks,
@@ -34,107 +52,192 @@ export default function TaskBoard({
   statuses: Status[]
   categories: Category[]
 }) {
-  const [addTaskStatusId, setAddTaskStatusId] = useState<string | null>(null)
-  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false)
-
-  const [taskDetailsTaskId, setTaskDetailsTaskId] = useState<string | null>(null)
-  const [isTaskDetailsModalOpen, setIsTaskDetailsModalOpen] = useState(false)
-
-  const [draggedTask, setDraggedTask] = useState<TaskWithRelations | null>(null)
-
-  const [overId, setOverId] = useState<UniqueIdentifier | null>(null)
-
-  const moveTaskMutation = useMoveTaskMutation()
-
   const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200,
-        tolerance: 5,
-      },
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+  )
+
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false)
+  const [addTaskStatusId, setAddTaskStatusId] = useState<string | null>(null)
+
+  const [isTaskDetailsModalOpen, setIsTaskDetailsModalOpen] = useState(false)
+  const [taskDetailsTaskId, setTaskDetailsTaskId] = useState<string | null>(null)
+
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
+  const lastOverId = useRef<UniqueIdentifier | null>(null)
+  const recentlyMovedToNewContainer = useRef(false)
+
+  const initialItemsByStatus: ItemsByStatus = Record.fromEntries(
+    Array.map(statuses, (status) => {
+      return [
+        status.id,
+        pipe(
+          tasks,
+          Array.filter((task) => task.statusId === status.id),
+          Array.map(({ id }) => id),
+        ),
+      ]
     }),
   )
 
-  const handleClickAddTask = (statusId_: string) => {
-    setAddTaskStatusId(statusId_)
-    setIsAddTaskModalOpen(true)
+  const [itemsByStatus, setItemsByStatus] = useState(initialItemsByStatus)
+
+  const moveTaskMutation = useMoveTaskMutation()
+
+  const collisionDetectionStrategy = useCallback(
+    () =>
+      getCollisionDetectionStrategy(
+        activeId,
+        itemsByStatus,
+        lastOverId,
+        recentlyMovedToNewContainer,
+      ),
+    [activeId, itemsByStatus],
+  )
+
+  const handleDragStart = ({ active }: DragStartEvent) => {
+    setActiveId(active.id)
   }
 
-  const handleCloseAddTaskModal = () => {
-    setIsAddTaskModalOpen(false)
-  }
+  const handleDragOver = ({ active, over }: DragOverEvent) => {
+    const overId = over?.id
 
-  const handleClickTask = (taskId: string) => {
-    setTaskDetailsTaskId(taskId)
-    setIsTaskDetailsModalOpen(true)
-  }
-
-  const handleCloseTaskDetailsModal = () => {
-    setIsTaskDetailsModalOpen(false)
-  }
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const item = event.active.data.current
-
-    if (isTaskItem(item)) {
-      setDraggedTask(item.task)
+    if (overId == null || active.id in itemsByStatus) {
+      return
     }
+
+    const toNext = (prev: ItemsByStatus) => {
+      const overContainer = findStatus(overId, prev)
+      const activeContainer = findStatus(active.id, prev)
+
+      if (!overContainer || !activeContainer) {
+        return prev
+      }
+
+      if (activeContainer === overContainer) {
+        return prev
+      }
+
+      const activeItems = itemsByStatus[activeContainer]!
+      const overItems = itemsByStatus[overContainer]!
+      const overIndex = overItems.indexOf(overId)
+      const activeIndex = activeItems.indexOf(active.id)
+
+      const nextIndex = getNextIndex(overId, itemsByStatus, overItems, over, active, overIndex)
+
+      recentlyMovedToNewContainer.current = true
+
+      const nextActiveContainer = itemsByStatus[activeContainer]?.filter(
+        (item) => item !== active.id,
+      )
+
+      const movingTaskId = itemsByStatus[activeContainer]![activeIndex]
+
+      if (!nextActiveContainer || !movingTaskId) {
+        return prev
+      }
+
+      const nextOverContainer = [
+        ...itemsByStatus[overContainer]!.slice(0, nextIndex),
+        movingTaskId,
+        ...itemsByStatus[overContainer]!.slice(nextIndex),
+      ]
+
+      return {
+        ...itemsByStatus,
+        [activeContainer]: nextActiveContainer,
+        [overContainer]: nextOverContainer,
+      }
+    }
+
+    setItemsByStatus(toNext)
   }
 
-  const handleDragOver = (event: DragOverEvent) => {
-    setOverId(event.over?.id ?? null)
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    const activeContainer = findStatus(active.id, itemsByStatus)
+
+    if (!activeContainer) {
+      setActiveId(null)
+      return
+    }
+
+    const overId = over?.id
+
+    if (overId == null) {
+      setActiveId(null)
+      return
+    }
+
+    const overContainer = findStatus(overId, itemsByStatus)
+
+    if (overContainer) {
+      const activeIndex = itemsByStatus[activeContainer]!.indexOf(active.id)
+      const overIndex = itemsByStatus[overContainer]!.indexOf(overId)
+
+      if (activeIndex !== overIndex) {
+        setItemsByStatus((items) => ({
+          ...items,
+          [overContainer]: arrayMove(items[overContainer]!, activeIndex, overIndex),
+        }))
+      }
+    }
+
+    setActiveId(null)
   }
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    // TODO: read the docs and do this properly, hardest part for sure
-  }
-
-  const selectedTask = taskDetailsTaskId
+  const taskDetailsTask = taskDetailsTaskId
     ? tasks.find(({ id }) => id === taskDetailsTaskId)
-    : undefined
+    : null
+
+  const dragOverlayTask = tasks.find(({ id }) => id === activeId) ?? null
 
   return (
-    <>
-      <DndContext
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-        sensors={sensors}
-        collisionDetection={closestCorners}
-      >
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-6 p-2 flex-1 overflow-hidden">
-          {statuses.map((status) => {
-            const statusTasks = tasks
-              .filter((task) => task.statusId === status.id)
-              .sort((a, b) => b.order - a.order)
+    <DndContext
+      sensors={sensors}
+      collisionDetection={collisionDetectionStrategy()}
+      measuring={{
+        droppable: {
+          strategy: MeasuringStrategy.Always,
+        },
+      }}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-6 p-2 flex-1 overflow-hidden">
+        {statuses.map((status) => {
+          const tasksIds = Record.get(itemsByStatus, status.id)
 
-            return (
+          return Option.match(tasksIds, {
+            onSome: (taskIds) => (
               <StatusColumn
                 key={status.id}
                 status={status}
-                tasks={statusTasks}
-                onAddTask={handleClickAddTask}
-                onClickTask={handleClickTask}
-                draggedTask={draggedTask}
-                overId={overId}
+                taskIds={taskIds}
+                allTasks={tasks}
+                onAddTask={(id) => {
+                  setAddTaskStatusId(id)
+                  setIsAddTaskModalOpen(true)
+                }}
+                onClickTask={(id) => {
+                  setTaskDetailsTaskId(id)
+                  setIsTaskDetailsModalOpen(true)
+                }}
+                activeId={activeId}
               />
-            )
-          })}
-        </div>
+            ),
+            onNone: () => <p>No tasks in this status</p>,
+          })
+        })}
+      </div>
 
-        <DragOverlay>
-          {draggedTask ? <TaskCard task={draggedTask} onClick={() => {}} /> : null}
-        </DragOverlay>
-      </DndContext>
+      <DragOverlay>
+        {dragOverlayTask ? <TaskCard task={dragOverlayTask} onClick={() => {}} /> : null}
+      </DragOverlay>
 
       <AddTaskModal
         open={isAddTaskModalOpen}
-        onCloseAction={handleCloseAddTaskModal}
+        onCloseAction={() => setIsAddTaskModalOpen(false)}
         statusId={addTaskStatusId}
         statuses={statuses}
         categories={categories}
@@ -142,11 +245,98 @@ export default function TaskBoard({
 
       <TaskDetailsModal
         open={isTaskDetailsModalOpen}
-        onCloseAction={handleCloseTaskDetailsModal}
-        task={selectedTask ?? null}
+        onCloseAction={() => setIsTaskDetailsModalOpen(false)}
+        task={taskDetailsTask ?? null}
         statuses={statuses}
         categories={categories}
       />
-    </>
+    </DndContext>
   )
+}
+
+const getCollisionDetectionStrategy =
+  (
+    activeId: UniqueIdentifier | null,
+    itemsByStatus: ItemsByStatus,
+    lastOverId: RefObject<UniqueIdentifier | null>,
+    recentlyMovedToNewContainer: RefObject<boolean>,
+  ): CollisionDetection =>
+  (args) => {
+    if (activeId && activeId in itemsByStatus) {
+      return closestCenter({
+        ...args,
+        droppableContainers: args.droppableContainers.filter(
+          (container) => container.id in itemsByStatus,
+        ),
+      })
+    }
+
+    // Start by finding any intersecting droppable
+    const pointerIntersections = pointerWithin(args)
+    const intersections =
+      pointerIntersections.length > 0
+        ? // If there are droppables intersecting with the pointer, return those
+          pointerIntersections
+        : rectIntersection(args)
+    let overId = getFirstCollision(intersections, 'id')
+
+    if (overId != null) {
+      if (overId in itemsByStatus) {
+        const containerItems = itemsByStatus[overId]
+
+        // If a container is matched and it contains items
+        if (containerItems && containerItems.length > 0) {
+          // Return the closest droppable within that container
+          // NOTE: Closest corners will have at least one item
+          // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+          overId = closestCenter({
+            ...args,
+            droppableContainers: args.droppableContainers.filter(
+              (container) => container.id !== overId && containerItems.includes(container.id),
+            ),
+          })[0]?.id!
+        }
+      }
+
+      lastOverId.current = overId
+
+      return [{ id: overId }]
+    }
+
+    // When a draggable item moves to a new container, the layout may shift
+    // and the `overId` may become `null`. We manually set the cached `lastOverId`
+    // to the id of the draggable item that was moved to the new container, otherwise
+    // the previous `overId` will be returned which can cause items to incorrectly shift positions
+    if (recentlyMovedToNewContainer.current) {
+      lastOverId.current = activeId
+    }
+
+    // If no droppable is matched, return the last match
+    return lastOverId.current ? [{ id: lastOverId.current }] : []
+  }
+
+const getNextIndex = (
+  overId: UniqueIdentifier,
+  itemsByStatus: ItemsByStatus,
+  overItems: UniqueIdentifier[],
+  over: Over | null,
+  active: Active,
+  overIndex: number,
+) => {
+  if (overId in itemsByStatus) {
+    return overItems.length + 1
+  } else {
+    const isBelowOverItem =
+      over &&
+      active.rect.current.translated &&
+      active.rect.current.translated.top > over.rect.top + over.rect.height
+
+    const modifier = isBelowOverItem ? 1 : 0
+
+    if (overIndex >= 0) {
+      return overIndex + modifier
+    } else {
+      return overItems.length + 1
+    }
+  }
 }

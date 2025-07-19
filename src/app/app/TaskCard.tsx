@@ -3,7 +3,6 @@ import { CSS } from '@dnd-kit/utilities'
 import clsx from 'clsx'
 
 import { TaskWithRelations } from '../api/tasks/route'
-import { DragItem } from './dragItem'
 
 export default function TaskCard({
   task,
@@ -17,7 +16,7 @@ export default function TaskCard({
     data: {
       type: 'task',
       task,
-    } satisfies DragItem,
+    },
   })
 
   const style = {

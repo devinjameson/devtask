@@ -5,51 +5,27 @@ import { PlusIcon } from '@heroicons/react/24/solid'
 import { Status } from '@/generated/prisma'
 import { TaskWithRelations } from '@/app/api/tasks/route'
 
-import { DragItem } from './dragItem'
 import TaskCard from './TaskCard'
 
 export default function StatusColumn({
   status,
-  tasks,
+  taskIds,
+  allTasks,
   onAddTask,
   onClickTask,
-  draggedTask,
-  overId,
+  activeId,
 }: {
   status: Status
-  tasks: TaskWithRelations[]
+  taskIds: UniqueIdentifier[]
+  allTasks: TaskWithRelations[]
   onAddTask: (statusId: string) => void
   onClickTask: (taskId: string) => void
-  draggedTask: TaskWithRelations | null
-  overId: UniqueIdentifier | null
+  activeId: UniqueIdentifier | null
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: status.id,
-    data: {
-      type: 'status',
-      status,
-    } satisfies DragItem,
+    data: { type: 'status', status },
   })
-
-  const taskIds = tasks.map(({ id }) => id)
-
-  // TODO: This seems sus, research more
-  let sortableItems = [...taskIds]
-
-  const isDraggingOverThisColumn = draggedTask && isOver
-
-  if (draggedTask && isDraggingOverThisColumn) {
-    sortableItems = sortableItems.filter((id) => id !== draggedTask.id)
-
-    const overIndex = sortableItems.indexOf(overId as string)
-    const insertAt = overIndex >= 0 ? overIndex : sortableItems.length
-
-    sortableItems = [
-      ...sortableItems.slice(0, insertAt),
-      draggedTask.id,
-      ...sortableItems.slice(insertAt),
-    ]
-  }
 
   return (
     <section
@@ -75,16 +51,14 @@ export default function StatusColumn({
         </button>
       </div>
 
-      <SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
+      <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
         <ul className="flex flex-col gap-4 min-h-[100px] flex-1">
-          {sortableItems.map((taskId) => {
-            const task =
-              tasks.find(({ id }) => id === taskId) ??
-              (taskId === draggedTask?.id && isDraggingOverThisColumn ? draggedTask : null)
+          {taskIds.map((taskId) => {
+            const task = allTasks.find((t) => t.id === taskId)
 
-            if (!task) return null
-
-            return <TaskCard key={task.id} task={task} onClick={() => onClickTask(task.id)} />
+            return task ? (
+              <TaskCard key={task.id} task={task} onClick={() => onClickTask(task.id)} />
+            ) : null
           })}
         </ul>
       </SortableContext>
