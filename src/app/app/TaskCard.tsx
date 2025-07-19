@@ -31,7 +31,7 @@ export default function TaskCard({
       {...attributes}
       {...listeners}
       className={clsx(
-        'rounded-lg bg-white shadow p-3 hover:bg-gray-100 hover:shadow-md transition cursor-grab active:cursor-grabbing',
+        'rounded-lg bg-white shadow p-3 hover:bg-gray-100 hover:shadow-md transition cursor-grab active:cursor-grabbing list-none',
         { 'opacity-0': isDragging },
       )}
       onClick={onClick}
