@@ -2,16 +2,15 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { MoveTaskBody, MoveTaskResult } from '../api/tasks/[id]/move/route'
 
+export type MoveTaskMutationParams = {
+  taskId: string
+} & MoveTaskBody
+
 export const useMoveTaskMutation = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
-      taskId,
-      ...body
-    }: {
-      taskId: string
-    } & MoveTaskBody) => {
+    mutationFn: async ({ taskId, ...body }: MoveTaskMutationParams) => {
       const response = await fetch(`/api/tasks/${taskId}/move`, {
         method: 'PATCH',
         headers: {

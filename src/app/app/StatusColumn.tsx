@@ -13,14 +13,12 @@ export default function StatusColumn({
   allTasks,
   onAddTask,
   onClickTask,
-  activeId,
 }: {
   status: Status
   taskIds: UniqueIdentifier[]
   allTasks: TaskWithRelations[]
   onAddTask: (statusId: string) => void
   onClickTask: (taskId: string) => void
-  activeId: UniqueIdentifier | null
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: status.id,
@@ -54,7 +52,7 @@ export default function StatusColumn({
       <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
         <ul className="flex flex-col gap-4 min-h-[100px] flex-1">
           {taskIds.map((taskId) => {
-            const task = allTasks.find((t) => t.id === taskId)
+            const task = allTasks.find(({ id }) => id === taskId)
 
             return task ? (
               <TaskCard key={task.id} task={task} onClick={() => onClickTask(task.id)} />

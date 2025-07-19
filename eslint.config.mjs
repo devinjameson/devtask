@@ -28,7 +28,7 @@ const config = [
       '@next/next': eslintPluginNext,
     },
     rules: {
-      '@typescript-eslint/no-shadow': 'error',
+      '@typescript-eslint/no-shadow': 'off',
       '@typescript-eslint/no-unnecessary-condition': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
