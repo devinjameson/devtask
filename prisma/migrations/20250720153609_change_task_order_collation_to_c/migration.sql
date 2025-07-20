@@ -1,0 +1,1 @@
+ALTER TABLE "Task" ALTER COLUMN "order" TYPE text COLLATE "C";

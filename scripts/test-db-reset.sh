@@ -8,6 +8,6 @@ echo "🚀 Starting test Supabase..."
 supabase start --workdir supabase-test
 
 echo "🧪 Setting up test database..."
-pnpm test:db:push
+pnpm test:db:migrate
 
 echo "✅ Test database reset complete."

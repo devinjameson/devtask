@@ -1,5 +1,6 @@
-import { Effect, Function, Match } from 'effect'
+import { Effect } from 'effect'
 import { UnknownException } from 'effect/Cause'
+import { generateKeyBetween } from 'fractional-indexing'
 
 import { prisma } from '@core/prisma'
 
@@ -45,13 +46,13 @@ export const createTask = (
     const newTask = yield* Effect.tryPromise({
       try: () =>
         prisma.$transaction(async (tx) => {
-          const taskWithMaxOrder = await tx.task.findFirst({
+          const lastTask = await tx.task.findFirst({
             where: { statusId: payload.statusId },
             orderBy: { order: 'desc' },
             select: { order: true },
           })
 
-          const order = taskWithMaxOrder ? taskWithMaxOrder.order + 1 : 0
+          const order = generateKeyBetween(lastTask?.order ?? null, null)
 
           return tx.task.create({
             data: {
@@ -73,32 +74,6 @@ export const createTask = (
     return newTask
   })
 
-const TEMP_ORDER = -1
-
-type Move = 'ToHigherOrderInStatus' | 'ToLowerOrderInStatus' | 'ToDifferentStatus' | 'None'
-
-const determineMove = ({
-  originOrder,
-  destinationOrder,
-  originStatusId,
-  destinationStatusId,
-}: {
-  originOrder: number
-  destinationOrder: number
-  originStatusId: string
-  destinationStatusId: string
-}): Move => {
-  if (originStatusId !== destinationStatusId) {
-    return 'ToDifferentStatus'
-  } else if (destinationOrder > originOrder) {
-    return 'ToHigherOrderInStatus'
-  } else if (destinationOrder < originOrder) {
-    return 'ToLowerOrderInStatus'
-  } else {
-    return 'None'
-  }
-}
-
 type MoveTaskPayload = {
   profileId: string
   taskId: string
@@ -113,7 +88,7 @@ export const moveTask = (
     const updatedTask = yield* Effect.tryPromise({
       try: () =>
         prisma.$transaction(async (tx) => {
-          const { profileId, taskId, destinationIndex: destinationOrder } = payload
+          const { profileId, taskId, destinationIndex } = payload
 
           const task = await tx.task.findUnique({
             where: { id: taskId, profileId },
@@ -123,112 +98,28 @@ export const moveTask = (
             throw new Error('Task not found')
           }
 
-          const { order: originOrder, statusId: originStatusId } = task
+          const destinationStatusId = payload.destinationStatusId ?? task.statusId
 
-          const destinationStatusId = payload.destinationStatusId ?? originStatusId
-
-          const move = determineMove({
-            originOrder,
-            destinationOrder,
-            originStatusId,
-            destinationStatusId,
+          const destinationTasks = await tx.task.findMany({
+            where: { statusId: destinationStatusId, id: { not: taskId } },
+            orderBy: { order: 'asc' },
+            select: { order: true },
           })
 
-          const makeRoomForMove = Match.value(move).pipe(
-            Match.when('None', Function.constVoid),
-            Match.when('ToHigherOrderInStatus', async () => {
-              await tx.task.update({
-                where: { id: payload.taskId },
-                data: { order: TEMP_ORDER },
-              })
+          const beforeTask = destinationIndex > 0 ? destinationTasks[destinationIndex - 1] : null
+          const afterTask = destinationTasks[destinationIndex] ?? null
 
-              const tasksToDecrement = await tx.task.findMany({
-                where: {
-                  statusId: originStatusId,
-                  order: { gt: originOrder, lte: destinationOrder },
-                },
-                orderBy: { order: 'asc' },
-              })
-
-              for (const task of tasksToDecrement) {
-                await tx.task.update({
-                  where: { id: task.id },
-                  data: { order: task.order - 1 },
-                })
-              }
-            }),
-            Match.when('ToLowerOrderInStatus', async () => {
-              await tx.task.update({
-                where: { id: payload.taskId },
-                data: { order: TEMP_ORDER },
-              })
-
-              const tasksToIncrement = await tx.task.findMany({
-                where: {
-                  statusId: originStatusId,
-                  order: { gte: destinationOrder, lt: originOrder },
-                },
-                orderBy: { order: 'desc' },
-              })
-
-              for (const task of tasksToIncrement) {
-                await tx.task.update({
-                  where: { id: task.id },
-                  data: { order: task.order + 1 },
-                })
-              }
-            }),
-            Match.when('ToDifferentStatus', async () => {
-              await tx.task.update({
-                where: { id: payload.taskId },
-                data: { order: TEMP_ORDER },
-              })
-
-              const tasksToDecrementInOrigin = await tx.task.findMany({
-                where: {
-                  statusId: originStatusId,
-                  order: { gt: originOrder },
-                },
-                orderBy: { order: 'asc' },
-              })
-
-              for (const task of tasksToDecrementInOrigin) {
-                await tx.task.update({
-                  where: { id: task.id },
-                  data: { order: task.order - 1 },
-                })
-              }
-
-              const tasksToIncrementInDestination = await tx.task.findMany({
-                where: {
-                  statusId: destinationStatusId,
-                  order: { gte: destinationOrder },
-                },
-                orderBy: { order: 'desc' },
-              })
-
-              for (const task of tasksToIncrementInDestination) {
-                await tx.task.update({
-                  where: { id: task.id },
-                  data: { order: task.order + 1 },
-                })
-              }
-            }),
-            Match.exhaustive,
-          )
-
-          await makeRoomForMove
+          const newOrder = generateKeyBetween(beforeTask?.order ?? null, afterTask?.order ?? null)
 
           return tx.task.update({
-            where: { id: payload.taskId },
+            where: { id: taskId },
             data: {
               statusId: destinationStatusId,
-              order: destinationOrder,
+              order: newOrder,
             },
           })
         }),
       catch: (error) => {
-        console.error('moveTask transaction failed:', error)
         return {
           message: `Failed moveTask: ${error}`,
           status: 500,

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { generateKeyBetween } from 'fractional-indexing'
 
 import { PrismaClient } from '@/generated/prisma'
 
@@ -58,7 +59,7 @@ async function main() {
 
   const statuses = await prisma.status.findMany()
 
-  const [backlog, inProgress, done] = [
+  const [pending, inProgress, done] = [
     statuses.find((s) => s.name === 'Pending')!,
     statuses.find((s) => s.name === 'In Progress')!,
     statuses.find((s) => s.name === 'Done')!,
@@ -79,8 +80,12 @@ async function main() {
 
   const getCategoryId = (name: string) => categories.find((c) => c.name === name)?.id ?? null
 
-  const backlogTasks = () => {
-    const statusId = backlog.id
+  const pendingTasks = () => {
+    const statusId = pending.id
+
+    const order1 = generateKeyBetween(null, null)
+    const order2 = generateKeyBetween(order1, null)
+    const order3 = generateKeyBetween(order2, null)
 
     return [
       {
@@ -89,7 +94,7 @@ async function main() {
         profileId: profile.id,
         statusId,
         categoryId: getCategoryId('Coffee'),
-        order: 0,
+        order: order1,
       },
       {
         title: 'Tidy up desk',
@@ -97,7 +102,7 @@ async function main() {
         profileId: profile.id,
         statusId,
         categoryId: getCategoryId('General'),
-        order: 1,
+        order: order2,
       },
       {
         title: 'Organize stickers',
@@ -105,7 +110,7 @@ async function main() {
         profileId: profile.id,
         statusId,
         categoryId: getCategoryId('General'),
-        order: 2,
+        order: order3,
       },
     ]
   }
@@ -120,7 +125,7 @@ async function main() {
         profileId: profile.id,
         statusId,
         categoryId: getCategoryId('Coding'),
-        order: 0,
+        order: generateKeyBetween(null, null),
       },
     ]
   }
@@ -135,13 +140,13 @@ async function main() {
         profileId: profile.id,
         statusId,
         categoryId: getCategoryId('General'),
-        order: 0,
+        order: generateKeyBetween(null, null),
       },
     ]
   }
 
   await prisma.task.createMany({
-    data: [...backlogTasks(), ...inProgressTasks(), ...doneTasks()],
+    data: [...pendingTasks(), ...inProgressTasks(), ...doneTasks()],
   })
 
   console.log('🌱 Seed complete:', {

@@ -47,7 +47,7 @@ model Task {
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
-  order Int
+  order String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

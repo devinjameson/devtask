@@ -19,6 +19,7 @@
     "test:supabase:stop": "supabase stop --workdir supabase-test",
     "test:supabase:status": "supabase status --workdir supabase-test",
     "test:db:reset": "bash scripts/test-db-reset.sh",
+    "test:db:migrate": "dotenv -e .env.test -- prisma migrate deploy",
     "test:start": "pnpm test:supabase && pnpm test:server"
   },
   "prisma": {
@@ -37,6 +38,7 @@
     "@tanstack/react-query": "^5.81.5",
     "clsx": "^2.1.1",
     "effect": "^3.16.10",
+    "fractional-indexing": "^3.2.0",
     "framer-motion": "^12.19.2",
     "js-cookie": "^3.0.5",
     "next": "15.3.4",
