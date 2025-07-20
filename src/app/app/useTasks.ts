@@ -16,7 +16,7 @@ const fetchTasks = async (): Promise<TaskWithRelations[]> => {
 
 export function useTasks({ profileId }: { profileId: string }) {
   return useQuery({
-    queryKey: ['tasks', { profileId: profileId }],
+    queryKey: ['tasks', { profileId }],
     queryFn: fetchTasks,
   })
 }

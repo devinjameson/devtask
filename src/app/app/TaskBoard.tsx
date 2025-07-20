@@ -86,6 +86,10 @@ export default function TaskBoard({
   const [dragTaskIdsByStatus, setDragTaskIdsByStatus] = useState(initialDragTaskIdsByStatus)
 
   useEffect(() => {
+    setDragTaskIdsByStatus(initialDragTaskIdsByStatus)
+  }, [initialDragTaskIdsByStatus])
+
+  useEffect(() => {
     requestAnimationFrame(() => {
       recentlyMovedToNewContainer.current = false
     })
