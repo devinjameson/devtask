@@ -1,6 +1,8 @@
 import { AnimateLayoutChanges, defaultAnimateLayoutChanges, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { CalendarIcon } from '@heroicons/react/16/solid'
 import clsx from 'clsx'
+import { DateTime } from 'effect'
 
 import { TaskWithRelations } from '../api/tasks/route'
 
@@ -37,22 +39,40 @@ export default function TaskCard({
       {...attributes}
       {...listeners}
       className={clsx(
-        'rounded-lg bg-white shadow p-3 transition list-none hover:bg-gray-100',
+        'rounded-lg bg-white shadow p-3 transition list-none',
         { 'opacity-0': isDragging },
         className,
       )}
       onClick={onClick}
     >
-      <h3 className="font-medium text-sm">{task.title}</h3>
+      <h3 className="text-sm">{task.title}</h3>
 
       {task.description && <p className="text-sm text-gray-600 line-clamp-2">{task.description}</p>}
 
-      {task.category && (
-        <div className="flex items-center mt-4">
-          <div className="w-1.5 h-1.5 rounded-full mr-1 bg-blue-700 mb-px" />
-          <p className="text-sm font-medium text-gray-800 spacing leading-0">
-            {task.category.name}
-          </p>
+      {(task.dueDate || task.category) && (
+        <div className="flex items-end justify-between mt-4">
+          <div>
+            {task.dueDate && (
+              <span className="flex items-center bg-rose-100 px-2 py-0.5 rounded-md">
+                <CalendarIcon className="h-4 w-4 text-rose-800" />
+                <span className="text-sm font-medium mt-px ml-1 text-rose-900">
+                  {DateTime.unsafeMake(task.dueDate).pipe(
+                    DateTime.format({
+                      month: 'short',
+                      day: 'numeric',
+                    }),
+                  )}
+                </span>
+              </span>
+            )}
+          </div>
+          <div>
+            {task.category && (
+              <div className="flex items-center bg-gray-200 px-2 py-0.5 rounded-md">
+                <p className="text-sm font-medium spacing">{task.category.name}</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </li>

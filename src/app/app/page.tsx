@@ -52,8 +52,10 @@ export default function App() {
   return (
     <div className="flex flex-col flex-1">
       <header className="flex items-center justify-between bg-gray-100 px-4 py-3">
-        <h1 className="text-lg font-semibold text-gray-800">My Tasks</h1>
-        <Button onClick={handleSignOut}>Sign out</Button>
+        <h1 className="text-lg font-semibold text-gray-800">devtask</h1>
+        <Button onClick={handleSignOut} color="light">
+          Sign out
+        </Button>
       </header>
 
       <main className="flex-1 p-4 flex flex-col gap-4">
