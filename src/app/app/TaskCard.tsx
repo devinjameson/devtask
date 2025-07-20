@@ -7,9 +7,11 @@ import { TaskWithRelations } from '../api/tasks/route'
 export default function TaskCard({
   task,
   onClick,
+  className,
 }: {
   task: TaskWithRelations
   onClick: () => void
+  className?: string
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
@@ -31,8 +33,9 @@ export default function TaskCard({
       {...attributes}
       {...listeners}
       className={clsx(
-        'rounded-lg bg-white shadow p-3 hover:bg-gray-100 hover:shadow-md transition cursor-grab active:cursor-grabbing list-none',
-        { 'opacity-0': isDragging },
+        'rounded-lg bg-white shadow p-3 transition list-none',
+        { 'opacity-50': isDragging },
+        className,
       )}
       onClick={onClick}
     >

@@ -227,10 +227,13 @@ export const moveTask = (
             },
           })
         }),
-      catch: (error) => ({
-        message: `Failed moveTask: ${error}`,
-        status: 500,
-      }),
+      catch: (error) => {
+        console.error('moveTask transaction failed:', error)
+        return {
+          message: `Failed moveTask: ${error}`,
+          status: 500,
+        }
+      },
     })
 
     return updatedTask

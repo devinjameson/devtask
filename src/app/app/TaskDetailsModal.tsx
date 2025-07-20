@@ -55,7 +55,7 @@ export default function TaskDetailsModal({
   }, [open, task, reset])
 
   const onSubmit = async (data: Inputs) => {
-    console.log('Update task:', data)
+    // TODO: Implement update logic
   }
 
   const isSaveDisabled = !isDirty

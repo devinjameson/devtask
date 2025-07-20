@@ -1,14 +1,18 @@
 import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { getCookie } from '@/lib/getCookie'
 import {
   Active,
   closestCenter,
   CollisionDetection,
+  defaultDropAnimationSideEffects,
   DndContext,
   DragEndEvent,
   DragOverEvent,
   DragOverlay,
   DragStartEvent,
+  DropAnimation,
   getFirstCollision,
+  KeyboardSensor,
   MeasuringStrategy,
   MouseSensor,
   Over,
@@ -19,12 +23,16 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
+import { arrayMove } from '@dnd-kit/sortable'
 import { Array, pipe, Record } from 'effect'
+
+import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 
 import { Category, Status } from '@/generated/prisma'
 import { TaskWithRelations } from '@/app/api/tasks/route'
 
 import AddTaskModal from './AddTaskModal'
+import { coordinateGetter } from './multipleContainersKeyboardCoordinates'
 import StatusColumn from './StatusColumn'
 import TaskCard from './TaskCard'
 import TaskDetailsModal from './TaskDetailsModal'
@@ -44,8 +52,9 @@ export default function TaskBoard({
   const moveTaskMutation = useMoveTaskMutation()
 
   const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+    useSensor(MouseSensor),
+    useSensor(TouchSensor),
+    useSensor(KeyboardSensor, { coordinateGetter }),
   )
 
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false)
@@ -76,10 +85,26 @@ export default function TaskBoard({
   )
 
   const [dragTaskIdsByStatus, setDragTaskIdsByStatus] = useState(initialDragTaskIdsByStatus)
+  const [clonedDragTaskIdsByStatus, setClonedDragTaskIdsByStatus] =
+    useState<DragTaskIdsByStatus | null>(null)
 
   useEffect(() => {
+    if (activeId) {
+      return
+    }
+
+    if (clonedDragTaskIdsByStatus) {
+      setClonedDragTaskIdsByStatus(null)
+    }
+
     setDragTaskIdsByStatus(initialDragTaskIdsByStatus)
-  }, [initialDragTaskIdsByStatus])
+  }, [initialDragTaskIdsByStatus, activeId, clonedDragTaskIdsByStatus])
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      recentlyMovedToNewContainer.current = false
+    })
+  }, [dragTaskIdsByStatus])
 
   const collisionDetectionStrategy = useCallback(
     () =>
@@ -94,6 +119,15 @@ export default function TaskBoard({
 
   const handleDragStart = ({ active }: DragStartEvent) => {
     setActiveId(active.id)
+    setClonedDragTaskIdsByStatus(dragTaskIdsByStatus)
+  }
+
+  const handleDragCancel = () => {
+    if (clonedDragTaskIdsByStatus) {
+      setDragTaskIdsByStatus(clonedDragTaskIdsByStatus)
+    }
+    setActiveId(null)
+    setClonedDragTaskIdsByStatus(null)
   }
 
   const handleDragOver = ({ active, over }: DragOverEvent) => {
@@ -179,30 +213,42 @@ export default function TaskBoard({
       return
     }
 
-    const statusTaskIds = dragTaskIdsByStatus[toStatus] ?? []
+    const toStatusTaskIds = dragTaskIdsByStatus[toStatus] ?? []
 
-    const toIndex =
-      over.id === active.id || over.id === toStatus
-        ? statusTaskIds.filter((id) => id !== active.id).length
-        : statusTaskIds.indexOf(over.id)
+    const activeIndex = toStatusTaskIds.indexOf(active.id)
+    const overIndex = toStatusTaskIds.indexOf(over.id)
 
     const isMoveToNewStatus = fromStatus !== toStatus
 
+    if (activeIndex !== -1 && overIndex !== -1 && activeIndex !== overIndex) {
+      setDragTaskIdsByStatus((prev) => ({
+        ...prev,
+        [toStatus]: arrayMove(toStatusTaskIds, activeIndex, overIndex),
+      }))
+    }
+
+    const profileId = getCookie(ACTIVE_PROFILE_COOKIE) ?? ''
+
+    const basePayload = {
+      profileId,
+      taskId: String(active.id),
+      destinationIndex: overIndex,
+    }
+
     const payload: MoveTaskMutationParams = isMoveToNewStatus
       ? {
-          taskId: String(active.id),
+          ...basePayload,
           destinationStatusId: String(toStatus),
-          destinationIndex: toIndex,
         }
-      : {
-          taskId: String(active.id),
-          destinationIndex: toIndex,
-        }
+      : basePayload
 
     try {
       await moveTaskMutation.mutateAsync(payload)
     } catch {
-      setDragTaskIdsByStatus(initialDragTaskIdsByStatus)
+      if (clonedDragTaskIdsByStatus) {
+        setDragTaskIdsByStatus(clonedDragTaskIdsByStatus)
+      }
+      setClonedDragTaskIdsByStatus(null)
     }
 
     setActiveId(null)
@@ -213,6 +259,16 @@ export default function TaskBoard({
     : null
 
   const dragOverlayTask = tasks.find(({ id }) => id === activeId) ?? null
+
+  const dropAnimation: DropAnimation = {
+    sideEffects: defaultDropAnimationSideEffects({
+      styles: {
+        active: {
+          opacity: '0.5',
+        },
+      },
+    }),
+  }
 
   return (
     <DndContext
@@ -226,6 +282,7 @@ export default function TaskBoard({
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
     >
       <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-6 p-2 flex-1 overflow-hidden">
         {statuses.map((status) => {
@@ -254,7 +311,7 @@ export default function TaskBoard({
         })}
       </div>
 
-      <DragOverlay>
+      <DragOverlay dropAnimation={dropAnimation}>
         {dragOverlayTask ? <TaskCard task={dragOverlayTask} onClick={() => {}} /> : null}
       </DragOverlay>
 

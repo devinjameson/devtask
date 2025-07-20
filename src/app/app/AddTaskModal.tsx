@@ -1,5 +1,8 @@
 import { useEffect } from 'react'
+import { getCookie } from '@/lib/getCookie'
 import { Controller, useForm } from 'react-hook-form'
+
+import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 
 import { Category, Status } from '@/generated/prisma'
 
@@ -49,7 +52,9 @@ export default function AddTaskModal({
     }
   }, [open, statusId, reset])
 
-  const createTaskMutation = useCreateTaskMutation()
+  const activeProfileId = getCookie(ACTIVE_PROFILE_COOKIE) ?? ''
+
+  const createTaskMutation = useCreateTaskMutation({ profileId: activeProfileId })
 
   const onSubmit = async (data: Inputs) => {
     const body: CreateTaskBody = {
