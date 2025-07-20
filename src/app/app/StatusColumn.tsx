@@ -11,12 +11,14 @@ export default function StatusColumn({
   status,
   taskIds,
   allTasks,
+  dragDisabled,
   onAddTask,
   onClickTask,
 }: {
   status: Status
   taskIds: UniqueIdentifier[]
   allTasks: TaskWithRelations[]
+  dragDisabled: boolean
   onAddTask: (statusId: string) => void
   onClickTask: (taskId: string) => void
 }) {
@@ -53,7 +55,12 @@ export default function StatusColumn({
             const task = allTasks.find(({ id }) => id === taskId)
 
             return task ? (
-              <TaskCard key={task.id} task={task} onClick={() => onClickTask(task.id)} />
+              <TaskCard
+                key={task.id}
+                task={task}
+                dragDisabled={dragDisabled}
+                onClick={() => onClickTask(task.id)}
+              />
             ) : null
           })}
         </ul>

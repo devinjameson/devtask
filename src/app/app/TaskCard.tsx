@@ -13,13 +13,16 @@ export default function TaskCard({
   task,
   onClick,
   className,
+  dragDisabled = false,
 }: {
   task: TaskWithRelations
   onClick: () => void
   className?: string
+  dragDisabled?: boolean
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
+    disabled: dragDisabled,
     data: {
       type: 'task',
       task,

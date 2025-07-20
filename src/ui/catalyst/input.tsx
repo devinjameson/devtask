@@ -36,7 +36,6 @@ export const Input = forwardRef(function Input(
     <span
       data-slot="control"
       className={clsx([
-        className,
         // Basic layout
         'relative block w-full',
         // Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
@@ -49,6 +48,7 @@ export const Input = forwardRef(function Input(
         'has-data-disabled:opacity-50 has-data-disabled:before:bg-zinc-950/5 has-data-disabled:before:shadow-none',
         // Invalid state
         'has-data-invalid:before:shadow-red-500/10',
+        className,
       ])}
     >
       <Headless.Input

@@ -43,10 +43,12 @@ export default function TaskBoard({
   tasks,
   statuses,
   categories,
+  searchQuery,
 }: {
   tasks: TaskWithRelations[]
   statuses: Status[]
   categories: Category[]
+  searchQuery: string
 }) {
   const moveTaskMutation = useMoveTaskMutation()
 
@@ -66,6 +68,22 @@ export default function TaskBoard({
   const lastOverId = useRef<UniqueIdentifier | null>(null)
   const recentlyMovedToNewContainer = useRef(false)
 
+  const filteredTasks = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return tasks
+    }
+
+    const query = searchQuery.toLowerCase()
+
+    return tasks.filter(
+      (task) =>
+        task.title.toLowerCase().includes(query) ||
+        (task.description && task.description.toLowerCase().includes(query)),
+    )
+  }, [tasks, searchQuery])
+
+  const isDragDisabled = searchQuery.trim() !== ''
+
   const initialDragTaskIdsByStatus: DragTaskIdsByStatus = useMemo(
     () =>
       Record.fromEntries(
@@ -73,14 +91,14 @@ export default function TaskBoard({
           return [
             status.id,
             pipe(
-              tasks,
+              filteredTasks,
               Array.filter(({ statusId }) => statusId === status.id),
               Array.map(({ id }) => id),
             ),
           ]
         }),
       ),
-    [statuses, tasks],
+    [statuses, filteredTasks],
   )
 
   const [dragTaskIdsByStatus, setDragTaskIdsByStatus] = useState(initialDragTaskIdsByStatus)
@@ -242,10 +260,10 @@ export default function TaskBoard({
   }
 
   const taskDetailsTask = taskDetailsTaskId
-    ? tasks.find(({ id }) => id === taskDetailsTaskId)
+    ? filteredTasks.find(({ id }) => id === taskDetailsTaskId)
     : null
 
-  const dragOverlayTask = tasks.find(({ id }) => id === activeId) ?? null
+  const dragOverlayTask = filteredTasks.find(({ id }) => id === activeId) ?? null
 
   return (
     <DndContext
@@ -274,7 +292,8 @@ export default function TaskBoard({
               key={status.id}
               status={status}
               taskIds={taskIds}
-              allTasks={tasks}
+              allTasks={filteredTasks}
+              dragDisabled={isDragDisabled}
               onAddTask={(id) => {
                 setAddTaskStatusId(id)
                 setIsAddTaskModalOpen(true)
@@ -290,7 +309,9 @@ export default function TaskBoard({
 
       {createPortal(
         <DragOverlay dropAnimation={null}>
-          {dragOverlayTask ? <TaskCard task={dragOverlayTask} onClick={() => {}} /> : null}
+          {dragOverlayTask ? (
+            <TaskCard task={dragOverlayTask} dragDisabled={isDragDisabled} onClick={() => {}} />
+          ) : null}
         </DragOverlay>,
         document.body,
       )}
