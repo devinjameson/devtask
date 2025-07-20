@@ -77,7 +77,7 @@ export const createTask = (
 type MoveTaskPayload = {
   profileId: string
   taskId: string
-  destinationIndex: number
+  afterTaskId: string | null
   destinationStatusId?: string
 }
 
@@ -88,7 +88,7 @@ export const moveTask = (
     const updatedTask = yield* Effect.tryPromise({
       try: () =>
         prisma.$transaction(async (tx) => {
-          const { profileId, taskId, destinationIndex } = payload
+          const { profileId, taskId, afterTaskId } = payload
 
           const task = await tx.task.findUnique({
             where: { id: taskId, profileId },
@@ -100,16 +100,12 @@ export const moveTask = (
 
           const destinationStatusId = payload.destinationStatusId ?? task.statusId
 
-          const destinationTasks = await tx.task.findMany({
-            where: { statusId: destinationStatusId, id: { not: taskId } },
-            orderBy: { order: 'asc' },
-            select: { order: true },
+          const newOrder = await getNewOrder({
+            tx,
+            taskId,
+            afterTaskId,
+            destinationStatusId,
           })
-
-          const beforeTask = destinationIndex > 0 ? destinationTasks[destinationIndex - 1] : null
-          const afterTask = destinationTasks[destinationIndex] ?? null
-
-          const newOrder = generateKeyBetween(beforeTask?.order ?? null, afterTask?.order ?? null)
 
           return tx.task.update({
             where: { id: taskId },
@@ -129,3 +125,48 @@ export const moveTask = (
 
     return updatedTask
   })
+
+const getNewOrder = async ({
+  tx,
+  taskId,
+  afterTaskId,
+  destinationStatusId,
+}: {
+  tx: Prisma.TransactionClient
+  taskId: string
+  afterTaskId: string | null
+  destinationStatusId: string
+}): Promise<string> => {
+  const isMoveToLowestOrder = afterTaskId === null
+
+  if (isMoveToLowestOrder) {
+    const lowestOrderTask = await tx.task.findFirst({
+      where: { statusId: destinationStatusId },
+      orderBy: { order: 'asc' },
+      select: { order: true },
+    })
+
+    const newOrder = generateKeyBetween(null, lowestOrderTask?.order ?? null)
+
+    return newOrder
+  } else {
+    const afterTask = await tx.task.findUniqueOrThrow({
+      where: { id: afterTaskId },
+      select: { order: true },
+    })
+
+    const followingTask = await tx.task.findFirst({
+      where: {
+        statusId: destinationStatusId,
+        order: { gt: afterTask.order },
+        id: { not: taskId },
+      },
+      orderBy: { order: 'asc' },
+      select: { order: true },
+    })
+
+    const newOrder = generateKeyBetween(afterTask.order, followingTask?.order ?? null)
+
+    return newOrder
+  }
+}

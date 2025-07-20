@@ -213,10 +213,16 @@ export default function TaskBoard({
 
     const profileId = getCookie(ACTIVE_PROFILE_COOKIE) ?? ''
 
+    const afterTaskId = getAfterTaskId({
+      toStatusTaskIds,
+      overIndex,
+      draggedTaskId: active.id,
+    })
+
     const basePayload = {
       profileId,
       taskId: String(active.id),
-      destinationIndex: overIndex,
+      afterTaskId: afterTaskId,
     }
 
     const payload: MoveTaskMutationParams = isMoveToNewStatus
@@ -394,4 +400,24 @@ const getNextIndex = (
       return overItems.length + 1
     }
   }
+}
+
+const getAfterTaskId = ({
+  toStatusTaskIds,
+  overIndex,
+  draggedTaskId,
+}: {
+  toStatusTaskIds: UniqueIdentifier[]
+  overIndex: number
+  draggedTaskId: UniqueIdentifier
+}): string | null => {
+  if (overIndex === 0) {
+    return null
+  }
+
+  const otherTasks = toStatusTaskIds.filter((id) => id !== draggedTaskId)
+
+  const afterTaskId = otherTasks[overIndex - 1]
+
+  return afterTaskId ? String(afterTaskId) : null
 }

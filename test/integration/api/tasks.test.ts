@@ -146,10 +146,10 @@ describe('PATCH /tasks/:id/move', () => {
     expect(initialCompletedTasks.map(({ title }) => title)).toEqual(['Task E', 'Task F'])
 
     {
-      // Move down within status
-      const taskB = tasksWithIds.find((task) => task.title === 'Task B')!
+      // Move to beginning of status
+      const taskB = findByTitle(tasksWithIds, 'Task B')
       const moveBody: MoveTaskBody = {
-        destinationIndex: 0,
+        afterTaskId: null,
       }
       const moveResponse = await makeAuthenticatedRequest(
         `/tasks/${taskB.id}/move`,
@@ -158,18 +158,19 @@ describe('PATCH /tasks/:id/move', () => {
       )
       expectSuccess<MoveTaskResultData>(moveResponse)
 
-      const afterGetResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
-      const { tasks: afterTasks } = await expectSuccess<GetTasksResultData>(afterGetResponse)
+      const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
+      const { tasks } = await expectSuccess<GetTasksResultData>(getResponse)
 
-      const afterPendingTasks = afterTasks.filter(({ statusId }) => statusId === pendingStatus.id)
-      expect(afterPendingTasks.map(({ title }) => title)).toEqual(['Task B', 'Task A', 'Task C'])
+      const pendingTasks = tasks.filter(({ statusId }) => statusId === pendingStatus.id)
+      expect(pendingTasks.map(({ title }) => title)).toEqual(['Task B', 'Task A', 'Task C'])
     }
 
     {
-      // Move up within status
-      const taskA = tasksWithIds.find((task) => task.title === 'Task A')!
+      // Move within status
+      const taskA = findByTitle(tasksWithIds, 'Task A')
+      const taskC = findByTitle(tasksWithIds, 'Task C')
       const moveBody: MoveTaskBody = {
-        destinationIndex: 2,
+        afterTaskId: taskC.id,
       }
       const moveResponse = await makeAuthenticatedRequest(
         `/tasks/${taskA.id}/move`,
@@ -178,18 +179,40 @@ describe('PATCH /tasks/:id/move', () => {
       )
       expectSuccess<MoveTaskResultData>(moveResponse)
 
-      const afterGetResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
-      const { tasks: afterTasks } = await expectSuccess<GetTasksResultData>(afterGetResponse)
+      const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
+      const { tasks } = await expectSuccess<GetTasksResultData>(getResponse)
 
-      const afterPendingTasks = afterTasks.filter(({ statusId }) => statusId === pendingStatus.id)
-      expect(afterPendingTasks.map(({ title }) => title)).toEqual(['Task B', 'Task C', 'Task A'])
+      const pendingTasks = tasks.filter(({ statusId }) => statusId === pendingStatus.id)
+      expect(pendingTasks.map(({ title }) => title)).toEqual(['Task B', 'Task C', 'Task A'])
+    }
+
+    {
+      // Move to end of status
+      const taskC = findByTitle(tasksWithIds, 'Task C')
+      const taskA = findByTitle(tasksWithIds, 'Task A')
+      const moveBody: MoveTaskBody = {
+        afterTaskId: taskA.id,
+      }
+      const moveResponse = await makeAuthenticatedRequest(
+        `/tasks/${taskC.id}/move`,
+        { method: 'PATCH', body: JSON.stringify(moveBody) },
+        cookies,
+      )
+      expectSuccess<MoveTaskResultData>(moveResponse)
+
+      const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
+      const { tasks } = await expectSuccess<GetTasksResultData>(getResponse)
+
+      const pendingTasks = tasks.filter(({ statusId }) => statusId === pendingStatus.id)
+      expect(pendingTasks.map(({ title }) => title)).toEqual(['Task B', 'Task A', 'Task C'])
     }
 
     {
       // Move to different status
-      const taskC = tasksWithIds.find((task) => task.title === 'Task C')!
+      const taskC = findByTitle(tasksWithIds, 'Task C')
+      const taskE = findByTitle(tasksWithIds, 'Task E')
       const moveBody: MoveTaskBody = {
-        destinationIndex: 1,
+        afterTaskId: taskE.id,
         destinationStatusId: completedStatus.id,
       }
       const moveResponse = await makeAuthenticatedRequest(
@@ -199,16 +222,17 @@ describe('PATCH /tasks/:id/move', () => {
       )
       expectSuccess<MoveTaskResultData>(moveResponse)
 
-      const afterGetResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
-      const { tasks: afterTasks } = await expectSuccess<GetTasksResultData>(afterGetResponse)
+      const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
+      const { tasks } = await expectSuccess<GetTasksResultData>(getResponse)
 
-      const afterPendingTasks = afterTasks.filter(({ statusId }) => statusId === pendingStatus.id)
-      const afterCompletedTasks = afterTasks.filter(
-        ({ statusId }) => statusId === completedStatus.id,
-      )
+      const pendingTasks = tasks.filter(({ statusId }) => statusId === pendingStatus.id)
+      const completedTasks = tasks.filter(({ statusId }) => statusId === completedStatus.id)
 
-      expect(afterPendingTasks.map(({ title }) => title)).toEqual(['Task B', 'Task A'])
-      expect(afterCompletedTasks.map(({ title }) => title)).toEqual(['Task E', 'Task C', 'Task F'])
+      expect(pendingTasks.map(({ title }) => title)).toEqual(['Task B', 'Task A'])
+      expect(completedTasks.map(({ title }) => title)).toEqual(['Task E', 'Task C', 'Task F'])
     }
   })
 })
+
+const findByTitle = (tasks: { id: string; title: string }[], title: string) =>
+  tasks.find((task) => task.title === title)!

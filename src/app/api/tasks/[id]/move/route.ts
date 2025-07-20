@@ -9,7 +9,7 @@ import { serviceResultToNextResponse } from '@core/api/serviceResultToNextRespon
 import { Task } from '@/generated/prisma'
 
 export type MoveTaskBody = {
-  destinationIndex: number
+  afterTaskId: string | null
   destinationStatusId?: string
 }
 
@@ -27,13 +27,13 @@ export async function PATCH(
   return await Effect.gen(function* () {
     yield* AuthUserService.getAuthUser
     const profileId = yield* ProfileService.getActiveProfileId
-    const { destinationIndex, destinationStatusId }: MoveTaskBody = yield* Effect.tryPromise(() =>
+    const { afterTaskId, destinationStatusId }: MoveTaskBody = yield* Effect.tryPromise(() =>
       req.json(),
     )
     const task = yield* TaskService.moveTask({
       profileId,
       taskId,
-      destinationIndex,
+      afterTaskId,
       destinationStatusId,
     })
     return { task }
