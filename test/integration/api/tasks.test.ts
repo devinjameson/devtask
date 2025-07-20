@@ -82,11 +82,14 @@ describe('POST /tasks', () => {
     const status = profile.statuses[0]!
     const category = profile.categories[0]!
 
+    const dueDate = new Date('2023-10-01').toISOString()
+
     const createBody: CreateTaskBody = {
       title: 'Test Task',
       description: 'Test Description',
       statusId: status.id,
       categoryId: category.id,
+      dueDate,
     }
     const createResponse = await makeAuthenticatedRequest(
       '/tasks',
@@ -104,6 +107,7 @@ describe('POST /tasks', () => {
     expect(firstTask.description).toBe(createBody.description)
     expect(firstTask.statusId).toBe(createBody.statusId)
     expect(firstTask.categoryId).toBe(createBody.categoryId)
+    expect(firstTask.dueDate).toBe(dueDate)
   })
 })
 
@@ -324,7 +328,7 @@ describe('PATCH /tasks/:id', () => {
     expect(updatedTask.categoryId).toBe(category.id)
   })
 
-  it('clears optional fields when passing empty string', async () => {
+  it('clears optional fields', async () => {
     const { profile, cookies } = await createTestUser()
 
     const status = profile.statuses[0]!
@@ -335,6 +339,7 @@ describe('PATCH /tasks/:id', () => {
       statusId: status.id,
       categoryId: category.id,
       description: 'Has description',
+      dueDate: new Date('2023-10-01').toISOString(),
     }
     const createResponse = await makeAuthenticatedRequest(
       '/tasks',
@@ -348,6 +353,7 @@ describe('PATCH /tasks/:id', () => {
     const patchBody: PatchTaskBody = {
       description: '',
       categoryId: null,
+      dueDate: null,
     }
     const patchResponse = await makeAuthenticatedRequest(
       `/tasks/${id}`,
@@ -358,6 +364,7 @@ describe('PATCH /tasks/:id', () => {
 
     expect(updatedTask.description).toBeNull()
     expect(updatedTask.categoryId).toBeNull()
+    expect(updatedTask.dueDate).toBeNull()
   })
 })
 

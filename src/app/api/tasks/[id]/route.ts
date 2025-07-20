@@ -27,9 +27,9 @@ export async function GET(
 export type PatchTaskBody = {
   title?: string
   statusId?: string
-  description?: string
+  description?: string | null
   categoryId?: string | null
-  dueDate?: string
+  dueDate?: string | null
 }
 
 export type PatchTaskResultData = { task: Task }

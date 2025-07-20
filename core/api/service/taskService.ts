@@ -2,6 +2,7 @@ import { Effect } from 'effect'
 import { UnknownException } from 'effect/Cause'
 import { generateKeyBetween } from 'fractional-indexing'
 
+import { mapNullable, mapUndefined } from '@core/lib/mapNullable'
 import { prisma } from '@core/prisma'
 
 import { Prisma, Task } from '@/generated/prisma'
@@ -78,7 +79,7 @@ export const createTask = (
               description: payload.description || undefined,
               statusId: payload.statusId,
               categoryId: payload.categoryId || undefined,
-              dueDate: payload.dueDate ? new Date(payload.dueDate) : undefined,
+              dueDate: mapUndefined(payload.dueDate, (date) => new Date(date)),
               profileId: payload.profileId,
               order,
             },
@@ -96,9 +97,9 @@ export type PatchTaskPayload = {
   id: string
   title?: string
   statusId?: string
-  description?: string
+  description?: string | null
   categoryId?: string | null
-  dueDate?: string
+  dueDate?: string | null
 }
 
 export const patchTask = (
@@ -115,7 +116,7 @@ export const patchTask = (
               description: payload.description || null,
               statusId: payload.statusId,
               categoryId: payload.categoryId,
-              dueDate: payload.dueDate ? new Date(payload.dueDate) : undefined,
+              dueDate: mapNullable(payload.dueDate, (date) => new Date(date)),
             },
           })
         }),

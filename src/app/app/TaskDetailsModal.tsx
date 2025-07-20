@@ -1,5 +1,9 @@
 import { useEffect } from 'react'
+import { getCookie } from '@/lib/getCookie'
 import { Controller, useForm } from 'react-hook-form'
+
+import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
+import { mapUndefined } from '@core/lib/mapNullable'
 
 import { Category, Status } from '@/generated/prisma'
 
@@ -7,17 +11,19 @@ import { Button } from '@/ui/catalyst/button'
 import { ErrorMessage, Field, Label } from '@/ui/catalyst/fieldset'
 import { Input } from '@/ui/catalyst/input'
 import { Select } from '@/ui/catalyst/select'
+import { Text } from '@/ui/catalyst/text'
 import { Textarea } from '@/ui/catalyst/textarea'
 import { DatePicker } from '@/ui/DatePicker'
 import { Modal } from '@/ui/Modal'
 
 import { TaskWithRelations } from '../api/tasks/route'
+import { usePatchTaskMutation } from './usePatchTaskMutation'
 
 type Inputs = {
   title: string
   description: string
   statusId: string
-  categoryId?: string
+  categoryId: string
   dueDate?: Date
 }
 
@@ -34,13 +40,17 @@ export default function TaskDetailsModal({
   statuses: Status[]
   categories: Category[]
 }) {
+  const profileId = getCookie(ACTIVE_PROFILE_COOKIE) ?? ''
   const {
     register,
     handleSubmit,
     reset,
     control,
+    setError,
     formState: { errors, isDirty },
   } = useForm<Inputs>()
+
+  const patchTaskMutation = usePatchTaskMutation({ profileId })
 
   useEffect(() => {
     if (open && task) {
@@ -49,16 +59,37 @@ export default function TaskDetailsModal({
         description: task.description ?? '',
         statusId: task.statusId,
         categoryId: task.categoryId ?? '',
-        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+        dueDate: mapUndefined(task.dueDate ?? undefined, (date) => new Date(date)),
       })
     }
   }, [open, task, reset])
 
-  const onSubmit = async (_data: Inputs) => {
-    // TODO: Implement update logic
+  const onSubmit = async (data: Inputs) => {
+    if (!task) {
+      return
+    }
+
+    const patchData = {
+      id: task.id,
+      title: data.title,
+      description: data.description || null,
+      statusId: data.statusId,
+      categoryId: data.categoryId || null,
+      dueDate: data.dueDate ? data.dueDate.toISOString() : null,
+    }
+
+    try {
+      await patchTaskMutation.mutateAsync(patchData)
+      onCloseAction()
+    } catch {
+      setError('root', {
+        type: 'manual',
+        message: 'Failed to update task. Please try again.',
+      })
+    }
   }
 
-  const isSaveDisabled = !isDirty
+  const isSaveDisabled = !isDirty || patchTaskMutation.isPending
 
   return (
     <Modal open={open} onCloseAction={onCloseAction} title={task?.title || 'Task Details'}>
@@ -112,6 +143,8 @@ export default function TaskDetailsModal({
               )}
             />
           </Field>
+
+          {errors.root && <Text className="text-red-500">{errors.root.message}</Text>}
 
           <Button type="submit" className="w-full" disabled={isSaveDisabled}>
             Save Task

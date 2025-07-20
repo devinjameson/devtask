@@ -55,6 +55,7 @@ export default function LogIn() {
     <AuthLayout>
       <form onSubmit={handleSubmit} className="grid w-full max-w-sm grid-cols-1 gap-4">
         <Heading>Sign in to your account</Heading>
+
         <Field>
           <Label>Email</Label>
           <Input
@@ -64,6 +65,7 @@ export default function LogIn() {
             onChange={(e) => setEmail(e.target.value)}
           />
         </Field>
+
         <Field>
           <Label>Password</Label>
           <Input
@@ -73,10 +75,13 @@ export default function LogIn() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </Field>
+
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? <Spinner /> : 'Log in'}
         </Button>
+
         {error && <Text className="text-red-500">{error}</Text>}
+
         <Text>
           Don’t have an account?{' '}
           <TextLink href="/sign-up">
