@@ -4,13 +4,11 @@ import {
   Active,
   closestCenter,
   CollisionDetection,
-  defaultDropAnimationSideEffects,
   DndContext,
   DragEndEvent,
   DragOverEvent,
   DragOverlay,
   DragStartEvent,
-  DropAnimation,
   getFirstCollision,
   KeyboardSensor,
   MeasuringStrategy,
@@ -53,8 +51,8 @@ export default function TaskBoard({
   const moveTaskMutation = useMoveTaskMutation()
 
   const sensors = useSensors(
-    useSensor(MouseSensor),
-    useSensor(TouchSensor),
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter }),
   )
 
@@ -239,16 +237,6 @@ export default function TaskBoard({
 
   const dragOverlayTask = tasks.find(({ id }) => id === activeId) ?? null
 
-  const dropAnimation: DropAnimation = {
-    sideEffects: defaultDropAnimationSideEffects({
-      styles: {
-        active: {
-          opacity: '0.5',
-        },
-      },
-    }),
-  }
-
   return (
     <DndContext
       sensors={sensors}
@@ -291,7 +279,7 @@ export default function TaskBoard({
       </div>
 
       {createPortal(
-        <DragOverlay dropAnimation={dropAnimation}>
+        <DragOverlay dropAnimation={null}>
           {dragOverlayTask ? <TaskCard task={dragOverlayTask} onClick={() => {}} /> : null}
         </DragOverlay>,
         document.body,
