@@ -136,9 +136,9 @@ const styles = {
       'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-blue-600)] [--btn-border:var(--color-blue-700)]/90',
       '[--btn-icon:var(--color-blue-400)] data-active:[--btn-icon:var(--color-blue-300)] data-hover:[--btn-icon:var(--color-blue-300)]',
     ],
-    violet: [
-      'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-violet-500)] [--btn-border:var(--color-violet-600)]/90',
-      '[--btn-icon:var(--color-violet-300)] data-active:[--btn-icon:var(--color-violet-200)] data-hover:[--btn-icon:var(--color-violet-200)]',
+    vioconst: [
+      'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-vioconst-500)] [--btn-border:var(--color-vioconst-600)]/90',
+      '[--btn-icon:var(--color-vioconst-300)] data-active:[--btn-icon:var(--color-vioconst-200)] data-hover:[--btn-icon:var(--color-vioconst-200)]',
     ],
     purple: [
       'text-white [--btn-hover-overlay:var(--color-white)]/10 [--btn-bg:var(--color-purple-500)] [--btn-border:var(--color-purple-600)]/90',
@@ -172,7 +172,7 @@ export const Button = forwardRef(function Button(
   { color, outline, plain, className, children, ...props }: ButtonProps,
   ref: React.ForwardedRef<HTMLElement>,
 ) {
-  let classes = clsx(
+  const classes = clsx(
     className,
     styles.base,
     outline

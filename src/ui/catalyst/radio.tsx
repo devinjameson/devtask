@@ -105,8 +105,8 @@ const colors = {
   blue: '[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-blue-600)] [--radio-checked-border:var(--color-blue-700)]/90',
   indigo:
     '[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-indigo-500)] [--radio-checked-border:var(--color-indigo-600)]/90',
-  violet:
-    '[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-violet-500)] [--radio-checked-border:var(--color-violet-600)]/90',
+  vioconst:
+    '[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-vioconst-500)] [--radio-checked-border:var(--color-vioconst-600)]/90',
   purple:
     '[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-purple-500)] [--radio-checked-border:var(--color-purple-600)]/90',
   fuchsia:

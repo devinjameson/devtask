@@ -24,8 +24,8 @@ const colors = {
   blue: 'bg-blue-500/15 text-blue-700 group-data-hover:bg-blue-500/25 dark:text-blue-400 dark:group-data-hover:bg-blue-500/25',
   indigo:
     'bg-indigo-500/15 text-indigo-700 group-data-hover:bg-indigo-500/25 dark:text-indigo-400 dark:group-data-hover:bg-indigo-500/20',
-  violet:
-    'bg-violet-500/15 text-violet-700 group-data-hover:bg-violet-500/25 dark:text-violet-400 dark:group-data-hover:bg-violet-500/20',
+  vioconst:
+    'bg-vioconst-500/15 text-vioconst-700 group-data-hover:bg-vioconst-500/25 dark:text-vioconst-400 dark:group-data-hover:bg-vioconst-500/20',
   purple:
     'bg-purple-500/15 text-purple-700 group-data-hover:bg-purple-500/25 dark:text-purple-400 dark:group-data-hover:bg-purple-500/20',
   fuchsia:
@@ -66,7 +66,7 @@ export const BadgeButton = forwardRef(function BadgeButton(
     ),
   ref: React.ForwardedRef<HTMLElement>,
 ) {
-  let classes = clsx(
+  const classes = clsx(
     className,
     'group relative inline-flex rounded-md focus:not-data-focus:outline-hidden data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-blue-500',
   )

@@ -14,6 +14,19 @@ const compat = new FlatCompat({
 
 const config = [
   {
+    ignores: [
+      '**/src/generated/**',
+      // '**/src/ui/catalyst/**',
+      '**/.next/**',
+      '**/out/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.next-test/**',
+      '**/supabase-test/**',
+      '**/node_modules/**',
+    ],
+  },
+  {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
       parser: tsParser,

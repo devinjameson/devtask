@@ -54,7 +54,7 @@ export default function TaskDetailsModal({
     }
   }, [open, task, reset])
 
-  const onSubmit = async (data: Inputs) => {
+  const onSubmit = async (_data: Inputs) => {
     // TODO: Implement update logic
   }
 
