@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
+import { Task } from '@/generated/prisma'
 import { MoveTaskBody, MoveTaskResultData } from '@/app/api/tasks/[id]/move/route'
-import { CreateTaskBody, CreateTaskResultData, GetTasksResultData } from '@/app/api/tasks/route'
+import { PatchTaskBody } from '@/app/api/tasks/[id]/route'
+import {
+  CreateTaskBody,
+  CreateTaskResultData,
+  GetTasksResultData,
+  TaskWithRelations,
+} from '@/app/api/tasks/route'
 
 import { expectSuccess, makeAuthenticatedRequest } from '../helpers/api'
 import { createTestUser } from '../helpers/db'
@@ -231,6 +238,126 @@ describe('PATCH /tasks/:id/move', () => {
       expect(pendingTasks.map(({ title }) => title)).toEqual(['Task B', 'Task A'])
       expect(completedTasks.map(({ title }) => title)).toEqual(['Task E', 'Task C', 'Task F'])
     }
+  })
+})
+
+describe('GET /tasks/:id', () => {
+  it('returns a task by id', async () => {
+    const { profile, cookies } = await createTestUser()
+
+    const status = profile.statuses[0]!
+    const category = profile.categories[0]!
+
+    const createBody: CreateTaskBody = {
+      title: 'Test Task',
+      description: 'Test Description',
+      statusId: status.id,
+      categoryId: category.id,
+    }
+    const createResponse = await makeAuthenticatedRequest(
+      '/tasks',
+      { method: 'POST', body: JSON.stringify(createBody) },
+      cookies,
+    )
+    const {
+      task: { id },
+    } = await expectSuccess<CreateTaskResultData>(createResponse, 201)
+
+    const getResponse = await makeAuthenticatedRequest(`/tasks/${id}`, { method: 'GET' }, cookies)
+    const { task } = await expectSuccess<{ task: TaskWithRelations }>(getResponse)
+
+    expect(task.id).toBe(id)
+    expect(task.title).toBe(createBody.title)
+    expect(task.description).toBe(createBody.description)
+    expect(task.statusId).toBe(createBody.statusId)
+    expect(task.categoryId).toBe(createBody.categoryId)
+  })
+
+  it('returns 404 for non-existent task', async () => {
+    const { cookies } = await createTestUser()
+
+    const getResponse = await makeAuthenticatedRequest(
+      '/tasks/non-existent-id',
+      { method: 'GET' },
+      cookies,
+    )
+    expect(getResponse.status).toBe(404)
+  })
+})
+
+describe('PATCH /tasks/:id', () => {
+  it('updates a task', async () => {
+    const { profile, cookies } = await createTestUser()
+
+    const status = profile.statuses[0]!
+    const category = profile.categories[0]!
+
+    const createBody: CreateTaskBody = {
+      title: 'Original Title',
+      description: 'Original Description',
+      statusId: status.id,
+      categoryId: category.id,
+    }
+    const createResponse = await makeAuthenticatedRequest(
+      '/tasks',
+      { method: 'POST', body: JSON.stringify(createBody) },
+      cookies,
+    )
+    const {
+      task: { id },
+    } = await expectSuccess<CreateTaskResultData>(createResponse, 201)
+
+    const patchBody = {
+      title: 'Updated Title',
+      description: 'Updated Description',
+    }
+    const patchResponse = await makeAuthenticatedRequest(
+      `/tasks/${id}`,
+      { method: 'PATCH', body: JSON.stringify(patchBody) },
+      cookies,
+    )
+    const { task: updatedTask } = await expectSuccess<{ task: Task }>(patchResponse)
+
+    expect(updatedTask.title).toBe(patchBody.title)
+    expect(updatedTask.description).toBe(patchBody.description)
+    expect(updatedTask.statusId).toBe(status.id)
+    expect(updatedTask.categoryId).toBe(category.id)
+  })
+
+  it('clears optional fields when passing empty string', async () => {
+    const { profile, cookies } = await createTestUser()
+
+    const status = profile.statuses[0]!
+    const category = profile.categories[0]!
+
+    const createBody: CreateTaskBody = {
+      title: 'Task with category',
+      statusId: status.id,
+      categoryId: category.id,
+      description: 'Has description',
+    }
+    const createResponse = await makeAuthenticatedRequest(
+      '/tasks',
+      { method: 'POST', body: JSON.stringify(createBody) },
+      cookies,
+    )
+    const {
+      task: { id },
+    } = await expectSuccess<CreateTaskResultData>(createResponse, 201)
+
+    const patchBody: PatchTaskBody = {
+      description: '',
+      categoryId: null,
+    }
+    const patchResponse = await makeAuthenticatedRequest(
+      `/tasks/${id}`,
+      { method: 'PATCH', body: JSON.stringify(patchBody) },
+      cookies,
+    )
+    const { task: updatedTask } = await expectSuccess<{ task: Task }>(patchResponse)
+
+    expect(updatedTask.description).toBeNull()
+    expect(updatedTask.categoryId).toBeNull()
   })
 })
 

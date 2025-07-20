@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { Effect } from 'effect'
 
 import { ApiResult } from '@core/api/apiResult'
-import { AuthUserService, ProfileService, TaskService } from '@core/api/service'
+import { AuthUserService, TaskService } from '@core/api/service'
 import { unknownExceptionToServiceException } from '@core/api/serviceException'
 import { serviceResultToNextResponse } from '@core/api/serviceResultToNextResponse'
 
@@ -22,17 +22,15 @@ export async function PATCH(
   req: Request,
   { params }: RouteParams,
 ): Promise<NextResponse<MoveTaskResult>> {
-  const { id: taskId } = await params
+  const { id } = await params
 
   return await Effect.gen(function* () {
     yield* AuthUserService.getAuthUser
-    const profileId = yield* ProfileService.getActiveProfileId
     const { afterTaskId, destinationStatusId }: MoveTaskBody = yield* Effect.tryPromise(() =>
       req.json(),
     )
     const task = yield* TaskService.moveTask({
-      profileId,
-      taskId,
+      id,
       afterTaskId,
       destinationStatusId,
     })

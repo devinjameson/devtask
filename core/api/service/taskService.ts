@@ -23,6 +23,24 @@ export const listTasks = (
     return tasks
   })
 
+export const getTask = (
+  id: string,
+): Effect.Effect<TaskWithRelations, ServiceException | UnknownException> =>
+  Effect.gen(function* () {
+    const task = yield* Effect.tryPromise({
+      try: () =>
+        prisma.task.findUniqueOrThrow({
+          where: { id },
+          include: { category: true, status: true },
+        }),
+      catch: () => {
+        return { message: `Failed getTask`, status: 404 }
+      },
+    })
+
+    return task
+  })
+
 export type TaskWithRelations = Prisma.TaskGetPayload<{
   include: {
     category: true
@@ -74,9 +92,43 @@ export const createTask = (
     return newTask
   })
 
+export type PatchTaskPayload = {
+  id: string
+  title?: string
+  statusId?: string
+  description?: string
+  categoryId?: string | null
+  dueDate?: string
+}
+
+export const patchTask = (
+  payload: PatchTaskPayload,
+): Effect.Effect<Task, ServiceException | UnknownException> =>
+  Effect.gen(function* () {
+    const patchedTask = yield* Effect.tryPromise({
+      try: () =>
+        prisma.$transaction(async (tx) => {
+          return tx.task.update({
+            where: { id: payload.id },
+            data: {
+              title: payload.title,
+              description: payload.description || null,
+              statusId: payload.statusId,
+              categoryId: payload.categoryId,
+              dueDate: payload.dueDate ? new Date(payload.dueDate) : undefined,
+            },
+          })
+        }),
+      catch: () => {
+        return { message: `Failed patchTask`, status: 500 }
+      },
+    })
+
+    return patchedTask
+  })
+
 type MoveTaskPayload = {
-  profileId: string
-  taskId: string
+  id: string
   afterTaskId: string | null
   destinationStatusId?: string
 }
@@ -88,10 +140,10 @@ export const moveTask = (
     const updatedTask = yield* Effect.tryPromise({
       try: () =>
         prisma.$transaction(async (tx) => {
-          const { profileId, taskId, afterTaskId } = payload
+          const { id, afterTaskId } = payload
 
           const task = await tx.task.findUnique({
-            where: { id: taskId, profileId },
+            where: { id },
           })
 
           if (!task) {
@@ -102,13 +154,13 @@ export const moveTask = (
 
           const newOrder = await getNewOrder({
             tx,
-            taskId,
+            id,
             afterTaskId,
             destinationStatusId,
           })
 
           return tx.task.update({
-            where: { id: taskId },
+            where: { id },
             data: {
               statusId: destinationStatusId,
               order: newOrder,
@@ -128,12 +180,12 @@ export const moveTask = (
 
 const getNewOrder = async ({
   tx,
-  taskId,
+  id,
   afterTaskId,
   destinationStatusId,
 }: {
   tx: Prisma.TransactionClient
-  taskId: string
+  id: string
   afterTaskId: string | null
   destinationStatusId: string
 }): Promise<string> => {
@@ -159,7 +211,7 @@ const getNewOrder = async ({
       where: {
         statusId: destinationStatusId,
         order: { gt: afterTask.order },
-        id: { not: taskId },
+        id: { not: id },
       },
       orderBy: { order: 'asc' },
       select: { order: true },
