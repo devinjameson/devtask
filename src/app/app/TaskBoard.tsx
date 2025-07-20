@@ -25,6 +25,7 @@ import {
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { Array, pipe, Record } from 'effect'
+import { createPortal } from 'react-dom'
 
 import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 
@@ -75,7 +76,7 @@ export default function TaskBoard({
             status.id,
             pipe(
               tasks,
-              Array.filter((task) => task.statusId === status.id),
+              Array.filter(({ statusId }) => statusId === status.id),
               Array.map(({ id }) => id),
             ),
           ]
@@ -85,20 +86,6 @@ export default function TaskBoard({
   )
 
   const [dragTaskIdsByStatus, setDragTaskIdsByStatus] = useState(initialDragTaskIdsByStatus)
-  const [clonedDragTaskIdsByStatus, setClonedDragTaskIdsByStatus] =
-    useState<DragTaskIdsByStatus | null>(null)
-
-  useEffect(() => {
-    if (activeId) {
-      return
-    }
-
-    if (clonedDragTaskIdsByStatus) {
-      setClonedDragTaskIdsByStatus(null)
-    }
-
-    setDragTaskIdsByStatus(initialDragTaskIdsByStatus)
-  }, [initialDragTaskIdsByStatus, activeId, clonedDragTaskIdsByStatus])
 
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -119,15 +106,10 @@ export default function TaskBoard({
 
   const handleDragStart = ({ active }: DragStartEvent) => {
     setActiveId(active.id)
-    setClonedDragTaskIdsByStatus(dragTaskIdsByStatus)
   }
 
   const handleDragCancel = () => {
-    if (clonedDragTaskIdsByStatus) {
-      setDragTaskIdsByStatus(clonedDragTaskIdsByStatus)
-    }
     setActiveId(null)
-    setClonedDragTaskIdsByStatus(null)
   }
 
   const handleDragOver = ({ active, over }: DragOverEvent) => {
@@ -220,7 +202,7 @@ export default function TaskBoard({
 
     const isMoveToNewStatus = fromStatus !== toStatus
 
-    if (activeIndex !== -1 && overIndex !== -1 && activeIndex !== overIndex) {
+    if (activeIndex !== overIndex) {
       setDragTaskIdsByStatus((prev) => ({
         ...prev,
         [toStatus]: arrayMove(toStatusTaskIds, activeIndex, overIndex),
@@ -245,10 +227,7 @@ export default function TaskBoard({
     try {
       await moveTaskMutation.mutateAsync(payload)
     } catch {
-      if (clonedDragTaskIdsByStatus) {
-        setDragTaskIdsByStatus(clonedDragTaskIdsByStatus)
-      }
-      setClonedDragTaskIdsByStatus(null)
+      setDragTaskIdsByStatus(initialDragTaskIdsByStatus)
     }
 
     setActiveId(null)
@@ -311,9 +290,12 @@ export default function TaskBoard({
         })}
       </div>
 
-      <DragOverlay dropAnimation={dropAnimation}>
-        {dragOverlayTask ? <TaskCard task={dragOverlayTask} onClick={() => {}} /> : null}
-      </DragOverlay>
+      {createPortal(
+        <DragOverlay dropAnimation={dropAnimation}>
+          {dragOverlayTask ? <TaskCard task={dragOverlayTask} onClick={() => {}} /> : null}
+        </DragOverlay>,
+        document.body,
+      )}
 
       <AddTaskModal
         open={isAddTaskModalOpen}

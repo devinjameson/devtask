@@ -1,8 +1,11 @@
-import { useSortable } from '@dnd-kit/sortable'
+import { AnimateLayoutChanges, defaultAnimateLayoutChanges, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import clsx from 'clsx'
 
 import { TaskWithRelations } from '../api/tasks/route'
+
+const animateLayoutChanges: AnimateLayoutChanges = (args) =>
+  defaultAnimateLayoutChanges({ ...args, wasDragging: true })
 
 export default function TaskCard({
   task,
@@ -19,6 +22,7 @@ export default function TaskCard({
       type: 'task',
       task,
     },
+    animateLayoutChanges,
   })
 
   const style = {
