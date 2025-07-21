@@ -69,7 +69,7 @@ model Category {
 
 model Status {
   id   String @id @default(uuid())
-  name String @unique
+  name String
 
   profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   profileId String

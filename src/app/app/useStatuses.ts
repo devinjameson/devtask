@@ -1,11 +1,11 @@
-import { useQuery, UseQueryOptions } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 
 import { fetchApi } from '@core/api/fetchApi'
 
 import { Status } from '@/generated/prisma'
 import { GetStatusesResultData } from '@/app/api/statuses/route'
 
-const fetchStatuses = async (): Promise<Status[]> => {
+export const fetchStatuses = async (): Promise<Status[]> => {
   const result = await fetchApi<GetStatusesResultData>(() => fetch('/api/statuses'))
 
   if (!result.success) {
@@ -15,12 +15,9 @@ const fetchStatuses = async (): Promise<Status[]> => {
   return result.data.statuses
 }
 
-export function useStatuses(
-  options: Omit<UseQueryOptions<Status[], Error>, 'queryKey' | 'queryFn'> = {},
-) {
+export function useStatuses({ profileId }: { profileId: string }) {
   return useQuery({
-    queryKey: ['statuses'],
+    queryKey: ['statuses', { profileId }],
     queryFn: fetchStatuses,
-    ...options,
   })
 }

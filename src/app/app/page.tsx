@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { getCookie } from '@/lib/getCookie'
 import { AsyncResult } from '@core'
 import { useQueryClient } from '@tanstack/react-query'
@@ -10,28 +11,58 @@ import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 import { Button } from '@/ui/catalyst/button'
 
 import { signOut } from './actions'
+import ProfileSwitcher from './ProfileSwitcher'
 import TaskBoard from './TaskBoard'
 import { useCategories } from './useCategories'
+import { usePrefetchInactiveProfiles } from './usePrefetchInactiveProfiles'
 import { useProfiles } from './useProfiles'
 import { useStatuses } from './useStatuses'
 import { useTasks } from './useTasks'
 
+type Filters = {
+  searchQuery: string
+  selectedStatusId: string | null
+  selectedCategoryId: string | null
+}
+
+const defaultFilters: Filters = {
+  searchQuery: '',
+  selectedStatusId: null,
+  selectedCategoryId: null,
+}
+
 export default function App() {
   const queryClient = useQueryClient()
 
+  const [filtersByProfile, setFiltersByProfile] = useState<Record<string, Filters>>({})
+
   const activeProfileId = getCookie(ACTIVE_PROFILE_COOKIE) ?? ''
+
+  const currentFilters = filtersByProfile[activeProfileId] ?? defaultFilters
+
+  const updateFilters = (updates: Partial<Filters>) => {
+    setFiltersByProfile((prev) => ({
+      ...prev,
+      [activeProfileId]: {
+        ...currentFilters,
+        ...updates,
+      },
+    }))
+  }
 
   const tasksQueryResult = useTasks({ profileId: activeProfileId })
   const asyncTasks = AsyncResult.fromQueryResult(tasksQueryResult)
 
-  const statusesQueryResult = useStatuses()
+  const statusesQueryResult = useStatuses({ profileId: activeProfileId })
   const asyncStatuses = AsyncResult.fromQueryResult(statusesQueryResult)
 
   const profilesQueryResult = useProfiles()
   const asyncProfiles = AsyncResult.fromQueryResult(profilesQueryResult)
 
-  const categoriesQueryResult = useCategories()
+  const categoriesQueryResult = useCategories({ profileId: activeProfileId })
   const asyncCategories = AsyncResult.fromQueryResult(categoriesQueryResult)
+
+  usePrefetchInactiveProfiles(profilesQueryResult.data, activeProfileId)
 
   const combined = pipe(
     asyncTasks,
@@ -53,6 +84,9 @@ export default function App() {
     <div className="flex flex-col flex-1">
       <header className="flex items-center justify-between bg-gray-100 px-4 py-3 gap-4">
         <h1 className="text-lg font-semibold text-gray-800">devtask</h1>
+
+        <ProfileSwitcher />
+
         <Button onClick={handleSignOut} color="light">
           Sign out
         </Button>
@@ -61,7 +95,17 @@ export default function App() {
       <main className="flex-1 p-4 flex flex-col gap-4">
         {AsyncResult.match(combined, {
           onOk: ([tasks, statuses, _profiles, categories]) => (
-            <TaskBoard tasks={tasks} statuses={statuses} categories={categories} />
+            <TaskBoard
+              tasks={tasks}
+              statuses={statuses}
+              categories={categories}
+              searchQuery={currentFilters.searchQuery}
+              selectedStatusId={currentFilters.selectedStatusId}
+              selectedCategoryId={currentFilters.selectedCategoryId}
+              onSearchChange={(searchQuery) => updateFilters({ searchQuery })}
+              onStatusChange={(selectedStatusId) => updateFilters({ selectedStatusId })}
+              onCategoryChange={(selectedCategoryId) => updateFilters({ selectedCategoryId })}
+            />
           ),
           onLoading: () => <div className="text-gray-500">Loading tasks...</div>,
           onErr: (error) => (

@@ -10,7 +10,6 @@ import {
   DragOverlay,
   DragStartEvent,
   getFirstCollision,
-  KeyboardSensor,
   MeasuringStrategy,
   MouseSensor,
   Over,
@@ -32,7 +31,6 @@ import { TaskWithRelations } from '@/app/api/tasks/route'
 
 import AddTaskModal from './AddTaskModal'
 import Filters from './Filters'
-import { coordinateGetter } from './multipleContainersKeyboardCoordinates'
 import StatusColumn from './StatusColumn'
 import TaskCard from './TaskCard'
 import TaskDetailsModal from './TaskDetailsModal'
@@ -44,17 +42,28 @@ export default function TaskBoard({
   tasks,
   statuses,
   categories,
+  searchQuery,
+  selectedStatusId,
+  selectedCategoryId,
+  onSearchChange,
+  onStatusChange,
+  onCategoryChange,
 }: {
   tasks: TaskWithRelations[]
   statuses: Status[]
   categories: Category[]
+  searchQuery: string
+  selectedStatusId: string | null
+  selectedCategoryId: string | null
+  onSearchChange: (query: string) => void
+  onStatusChange: (statusId: string | null) => void
+  onCategoryChange: (categoryId: string | null) => void
 }) {
   const moveTaskMutation = useMoveTaskMutation()
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter }),
   )
 
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false)
@@ -62,10 +71,6 @@ export default function TaskBoard({
 
   const [isTaskDetailsModalOpen, setIsTaskDetailsModalOpen] = useState(false)
   const [taskDetailsTaskId, setTaskDetailsTaskId] = useState<string | null>(null)
-
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedStatusId, setSelectedStatusId] = useState<string | null>(null)
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
 
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
   const lastOverId = useRef<UniqueIdentifier | null>(null)
@@ -92,14 +97,12 @@ export default function TaskBoard({
     () =>
       Record.fromEntries(
         Array.map(statuses, (status) => {
-          return [
-            status.id,
-            pipe(
-              filteredTasks,
-              Array.filter(({ statusId }) => statusId === status.id),
-              Array.map(({ id }) => id),
-            ),
-          ]
+          const statusTasks = pipe(
+            filteredTasks,
+            Array.filter(({ statusId }) => statusId === status.id),
+            Array.map(({ id }) => id),
+          )
+          return [status.id, statusTasks]
         }),
       ),
     [statuses, filteredTasks],
@@ -127,18 +130,6 @@ export default function TaskBoard({
       ),
     [activeId, dragTaskIdsByStatus],
   )
-
-  const handleSearchChange = (query: string) => {
-    setSearchQuery(query)
-  }
-
-  const handleStatusChange = (statusId: string | null) => {
-    setSelectedStatusId(statusId)
-  }
-
-  const handleCategoryChange = (categoryId: string | null) => {
-    setSelectedCategoryId(categoryId)
-  }
 
   const handleDragStart = ({ active }: DragStartEvent) => {
     setActiveId(active.id)
@@ -266,13 +257,14 @@ export default function TaskBoard({
         }
       : basePayload
 
-    try {
-      await moveTaskMutation.mutateAsync(payload)
-    } catch {
-      setDragTaskIdsByStatus(initialDragTaskIdsByStatus)
-    }
-
-    setActiveId(null)
+    moveTaskMutation.mutate(payload, {
+      onError: () => {
+        setDragTaskIdsByStatus(initialDragTaskIdsByStatus)
+      },
+      onSettled: () => {
+        setActiveId(null)
+      },
+    })
   }
 
   const taskDetailsTask = taskDetailsTaskId
@@ -289,10 +281,11 @@ export default function TaskBoard({
         searchQuery={searchQuery}
         selectedStatusId={selectedStatusId}
         selectedCategoryId={selectedCategoryId}
-        onSearchChange={handleSearchChange}
-        onChangeStatus={handleStatusChange}
-        onChangeCategory={handleCategoryChange}
+        onSearchChange={onSearchChange}
+        onChangeStatus={onStatusChange}
+        onChangeCategory={onCategoryChange}
       />
+
       <DndContext
         sensors={sensors}
         collisionDetection={collisionDetectionStrategy()}
@@ -308,11 +301,7 @@ export default function TaskBoard({
       >
         <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-6 flex-1 overflow-hidden">
           {statuses.map((status) => {
-            const taskIds = dragTaskIdsByStatus[status.id]
-
-            if (!taskIds) {
-              return <p key={status.id}>No tasks in this status</p>
-            }
+            const taskIds = dragTaskIdsByStatus[status.id] ?? []
 
             return (
               <StatusColumn

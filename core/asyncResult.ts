@@ -49,18 +49,22 @@ export const map =
   }
 
 export const fromQueryResult = <T, U>(queryResult: UseQueryResult<T, U>): AsyncResult<T, U> => {
-  if (queryResult.isLoading) {
-    return loading<T, U>()
-  } else if (queryResult.isError) {
-    return err<U, T>(queryResult.error as U)
-  } else {
+  if (queryResult.data !== undefined) {
     return ok<T, U>(queryResult.data as T)
+  } else if (queryResult.isLoading) {
+    return loading<T, U>()
+  } else {
+    return err<U, T>(queryResult.error as U)
   }
 }
 
 export const combine =
   <T, U>(a: AsyncResult<T, U>) =>
   <V, W>(b: AsyncResult<V, W>): AsyncResult<[T, V], U | W> => {
+    if (isOk(a) && isOk(b)) {
+      return ok<[T, V], U | W>([a.value, b.value])
+    }
+
     if (isLoading(a) || isLoading(b)) {
       return loading<[T, V], U | W>()
     }
@@ -73,5 +77,5 @@ export const combine =
       return err<U | W, [T, V]>(b.value)
     }
 
-    return ok<[T, V], U | W>([a.value, b.value])
+    return loading<[T, V], U | W>()
   }

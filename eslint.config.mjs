@@ -16,7 +16,6 @@ const config = [
   {
     ignores: [
       '**/src/generated/**',
-      // '**/src/ui/catalyst/**',
       '**/.next/**',
       '**/out/**',
       '**/dist/**',

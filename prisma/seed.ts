@@ -32,9 +32,7 @@ async function main() {
       firstName: 'Demo',
       lastName: 'User',
       profiles: {
-        create: {
-          name: 'Home',
-        },
+        create: [{ name: 'Home' }, { name: 'Work' }],
       },
     },
     include: {
@@ -42,46 +40,57 @@ async function main() {
     },
   })
 
-  const profile = user.profiles[0]
-
-  if (!profile) {
-    throw new Error('User missing profile')
-  }
+  const homeProfile = user.profiles.find(({ name }) => name === 'Home')!
+  const workProfile = user.profiles.find(({ name }) => name === 'Work')!
 
   await prisma.status.createMany({
     data: [
-      { name: 'Pending', profileId: profile.id },
-      { name: 'In Progress', profileId: profile.id },
-      { name: 'Done', profileId: profile.id },
+      { name: 'Pending', profileId: homeProfile.id },
+      { name: 'In Progress', profileId: homeProfile.id },
+      { name: 'Done', profileId: homeProfile.id },
     ],
     skipDuplicates: true,
   })
 
-  const statuses = await prisma.status.findMany()
+  await prisma.status.createMany({
+    data: [
+      { name: 'Pending', profileId: workProfile.id },
+      { name: 'In Progress', profileId: workProfile.id },
+      { name: 'Done', profileId: workProfile.id },
+    ],
+    skipDuplicates: true,
+  })
 
-  const [pending, inProgress, done] = [
-    statuses.find((s) => s.name === 'Pending')!,
-    statuses.find((s) => s.name === 'In Progress')!,
-    statuses.find((s) => s.name === 'Done')!,
-  ]
+  const statuses = await prisma.status.findMany({ include: { profile: true } })
 
   await prisma.category.createMany({
     data: [
-      { name: 'General', profileId: profile.id },
-      { name: 'Coffee', profileId: profile.id },
-      { name: 'Coding', profileId: profile.id },
+      { name: 'General', profileId: homeProfile.id },
+      { name: 'Coffee', profileId: homeProfile.id },
+      { name: 'Coding', profileId: homeProfile.id },
+    ],
+    skipDuplicates: true,
+  })
+
+  await prisma.category.createMany({
+    data: [
+      { name: 'Operations', profileId: workProfile.id },
+      { name: 'Human Resources', profileId: workProfile.id },
+      { name: 'Marketing', profileId: workProfile.id },
     ],
     skipDuplicates: true,
   })
 
   const categories = await prisma.category.findMany({
-    where: { profileId: profile.id },
+    where: { profileId: homeProfile.id },
   })
 
   const getCategoryId = (name: string) => categories.find((c) => c.name === name)?.id ?? null
 
   const pendingTasks = () => {
-    const statusId = pending.id
+    const statusId = statuses.find(
+      ({ name, profile }) => name === 'Pending' && profile.name === 'Home',
+    )!.id
 
     const order1 = generateKeyBetween(null, null)
     const order2 = generateKeyBetween(order1, null)
@@ -91,53 +100,61 @@ async function main() {
       {
         title: 'Dial in new Sey',
         description: 'Tweak grind size?',
-        profileId: profile.id,
+        profileId: homeProfile.id,
         statusId,
         categoryId: getCategoryId('Coffee'),
         order: order1,
+        dueDate: daysFromNow(1),
       },
       {
         title: 'Tidy up desk',
         description: 'Decide on new spots for various decorative items',
-        profileId: profile.id,
+        profileId: homeProfile.id,
         statusId,
         categoryId: getCategoryId('General'),
         order: order2,
+        dueDate: daysFromNow(2),
       },
       {
         title: 'Organize stickers',
         description: 'Sort by vibe, not category.',
-        profileId: profile.id,
+        profileId: homeProfile.id,
         statusId,
         categoryId: getCategoryId('General'),
         order: order3,
+        dueDate: daysFromNow(3),
       },
     ]
   }
 
   const inProgressTasks = () => {
-    const statusId = inProgress.id
+    const statusId = statuses.find(
+      ({ name, profile }) => name === 'In Progress' && profile.name === 'Home',
+    )!.id
 
     return [
       {
         title: 'Update Neovim config',
         description: 'Reorganize plugins',
-        profileId: profile.id,
+        profileId: homeProfile.id,
         statusId,
         categoryId: getCategoryId('Coding'),
         order: generateKeyBetween(null, null),
+        dueDate: daysFromNow(-1),
       },
     ]
   }
 
   const doneTasks = () => {
-    const statusId = done.id
+    const statusId = statuses.find(
+      ({ name, profile }) => name === 'Done' && profile.name === 'Home',
+    )!.id
 
     return [
       {
         title: 'Call Mom',
         description: 'Crucial',
-        profileId: profile.id,
+        profileId: homeProfile.id,
         statusId,
         categoryId: getCategoryId('General'),
         order: generateKeyBetween(null, null),
@@ -149,12 +166,7 @@ async function main() {
     data: [...pendingTasks(), ...inProgressTasks(), ...doneTasks()],
   })
 
-  console.log('🌱 Seed complete:', {
-    user: user.email,
-    profile: profile.name,
-    statuses: statuses.map((s) => s.name),
-    categories: categories.map((c) => c.name),
-  })
+  console.log('🌱 Seed complete')
 }
 
 main()
@@ -165,3 +177,5 @@ main()
   .finally(async () => {
     await prisma.$disconnect()
   })
+
+const daysFromNow = (days: number) => new Date(Date.now() + 1000 * 60 * 60 * 24 * days)

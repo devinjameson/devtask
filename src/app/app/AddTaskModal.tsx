@@ -124,7 +124,7 @@ export default function AddTaskModal({
         </Field>
 
         <Button type="submit" className="w-full" disabled={createTaskMutation.isPending}>
-          {createTaskMutation.isPending ? 'Adding...' : 'Add Task'}
+          Add Task
         </Button>
       </form>
     </Modal>
