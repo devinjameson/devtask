@@ -68,6 +68,7 @@ export default function TaskBoard({
   const lastOverId = useRef<UniqueIdentifier | null>(null)
   const recentlyMovedToNewContainer = useRef(false)
 
+  const wasFilteringRef = useRef(false)
   const filteredTasks = useMemo(() => {
     if (!searchQuery.trim()) {
       return tasks
@@ -82,7 +83,17 @@ export default function TaskBoard({
     )
   }, [tasks, searchQuery])
 
-  const isDragDisabled = searchQuery.trim() !== ''
+  const isFiltering = searchQuery.trim() !== ''
+  const isDragDisabled = isFiltering
+
+  const wasFiltering = wasFilteringRef.current
+  const disableAnimations = isFiltering || wasFiltering
+
+  useEffect(() => {
+    setTimeout(() => {
+      wasFilteringRef.current = isFiltering
+    }, 0)
+  })
 
   const initialDragTaskIdsByStatus: DragTaskIdsByStatus = useMemo(
     () =>
@@ -294,6 +305,7 @@ export default function TaskBoard({
               taskIds={taskIds}
               allTasks={filteredTasks}
               dragDisabled={isDragDisabled}
+              disableAnimations={disableAnimations}
               onAddTask={(id) => {
                 setAddTaskStatusId(id)
                 setIsAddTaskModalOpen(true)
@@ -310,7 +322,12 @@ export default function TaskBoard({
       {createPortal(
         <DragOverlay dropAnimation={null}>
           {dragOverlayTask ? (
-            <TaskCard task={dragOverlayTask} dragDisabled={isDragDisabled} onClick={() => {}} />
+            <TaskCard
+              task={dragOverlayTask}
+              dragDisabled={isDragDisabled}
+              disableAnimations={disableAnimations}
+              onClick={() => {}}
+            />
           ) : null}
         </DragOverlay>,
         document.body,

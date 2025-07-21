@@ -14,11 +14,13 @@ export default function TaskCard({
   onClick,
   className,
   dragDisabled = false,
+  disableAnimations = false,
 }: {
   task: TaskWithRelations
   onClick: () => void
   className?: string
   dragDisabled?: boolean
+  disableAnimations?: boolean
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
@@ -27,7 +29,7 @@ export default function TaskCard({
       type: 'task',
       task,
     },
-    animateLayoutChanges,
+    animateLayoutChanges: disableAnimations ? () => false : animateLayoutChanges,
   })
 
   const style = {
@@ -42,7 +44,7 @@ export default function TaskCard({
       {...attributes}
       {...listeners}
       className={clsx(
-        'rounded-lg bg-white shadow p-3 transition list-none',
+        'rounded-lg bg-white shadow p-3 list-none',
         { 'opacity-0': isDragging },
         className,
       )}

@@ -12,6 +12,7 @@ export default function StatusColumn({
   taskIds,
   allTasks,
   dragDisabled,
+  disableAnimations,
   onAddTask,
   onClickTask,
 }: {
@@ -19,6 +20,7 @@ export default function StatusColumn({
   taskIds: UniqueIdentifier[]
   allTasks: TaskWithRelations[]
   dragDisabled: boolean
+  disableAnimations: boolean
   onAddTask: (statusId: string) => void
   onClickTask: (taskId: string) => void
 }) {
@@ -59,6 +61,7 @@ export default function StatusColumn({
                 key={task.id}
                 task={task}
                 dragDisabled={dragDisabled}
+                disableAnimations={disableAnimations}
                 onClick={() => onClickTask(task.id)}
               />
             ) : null
