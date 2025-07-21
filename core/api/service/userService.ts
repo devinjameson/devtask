@@ -47,19 +47,34 @@ export const createUser = (
             firstName,
             lastName,
             profiles: {
-              create: {
-                name: 'Home',
-                statuses: {
-                  createMany: {
-                    data: [{ name: 'Pending' }, { name: 'In Progress' }, { name: 'Completed' }],
+              create: [
+                {
+                  name: 'Personal',
+                  statuses: {
+                    createMany: {
+                      data: [{ name: 'Pending' }, { name: 'In Progress' }, { name: 'Completed' }],
+                    },
+                  },
+                  categories: {
+                    createMany: {
+                      data: [{ name: 'Shopping' }, { name: 'Health' }, { name: 'Creative' }],
+                    },
                   },
                 },
-                categories: {
-                  createMany: {
-                    data: [{ name: 'Work' }, { name: 'Personal' }],
+                {
+                  name: 'Work',
+                  statuses: {
+                    createMany: {
+                      data: [{ name: 'Pending' }, { name: 'In Progress' }, { name: 'Completed' }],
+                    },
+                  },
+                  categories: {
+                    createMany: {
+                      data: [{ name: 'Shopping' }, { name: 'Health' }, { name: 'Creative' }],
+                    },
                   },
                 },
-              },
+              ],
             },
           },
           include: {
@@ -71,18 +86,25 @@ export const createUser = (
           },
         })
 
-        const profile = user.profiles[0]!
-        const pendingStatus = profile.statuses.find(({ name }) => name === 'Pending')!
-        const inProgressStatus = profile.statuses.find(({ name }) => name === 'In Progress')!
-        const completedStatus = profile.statuses.find(({ name }) => name === 'Completed')!
+        const personalProfile = user.profiles.find(({ name }) => name === 'Personal')!
+        const pendingStatus = personalProfile.statuses.find(({ name }) => name === 'Pending')!
+        const inProgressStatus = personalProfile.statuses.find(
+          ({ name }) => name === 'In Progress',
+        )!
+        const completedStatus = personalProfile.statuses.find(({ name }) => name === 'Completed')!
 
         const profileWithCategories = await tx.profile.findUnique({
-          where: { id: profile.id },
+          where: { id: personalProfile.id },
           include: { categories: true },
         })
-        const workCategory = profileWithCategories!.categories.find(({ name }) => name === 'Work')!
-        const personalCategory = profileWithCategories!.categories.find(
-          ({ name }) => name === 'Personal',
+        const shoppingCategory = profileWithCategories!.categories.find(
+          ({ name }) => name === 'Shopping',
+        )!
+        const healthCategory = profileWithCategories!.categories.find(
+          ({ name }) => name === 'Health',
+        )!
+        const creativeCategory = profileWithCategories!.categories.find(
+          ({ name }) => name === 'Creative',
         )!
 
         const order0 = generateKeyBetween(null, null)
@@ -95,8 +117,8 @@ export const createUser = (
               description:
                 'Try dragging me to the "In Progress" column to see how easy it is to organize your tasks.',
               statusId: pendingStatus.id,
-              profileId: profile.id,
-              categoryId: personalCategory.id,
+              profileId: personalProfile.id,
+              categoryId: creativeCategory.id,
               dueDate: daysFromNow(1),
               order: order0,
             },
@@ -105,8 +127,8 @@ export const createUser = (
               description:
                 'Click the "+" button to add a new task. You can add descriptions, due dates, and categories, too!',
               statusId: pendingStatus.id,
-              profileId: profile.id,
-              categoryId: personalCategory.id,
+              profileId: personalProfile.id,
+              categoryId: creativeCategory.id,
               dueDate: daysFromNow(7),
               order: order1,
             },
@@ -115,8 +137,8 @@ export const createUser = (
               description:
                 'Click on any task to edit its title, description, due date, or category. You can also delete tasks from here.',
               statusId: inProgressStatus.id,
-              profileId: profile.id,
-              categoryId: workCategory.id,
+              profileId: personalProfile.id,
+              categoryId: healthCategory.id,
               dueDate: daysFromNow(0),
               order: order0,
             },
@@ -125,8 +147,8 @@ export const createUser = (
               description:
                 'Great job! When you finish tasks, drag them here or move them using the edit dialog.',
               statusId: completedStatus.id,
-              profileId: profile.id,
-              categoryId: workCategory.id,
+              profileId: personalProfile.id,
+              categoryId: healthCategory.id,
               dueDate: null,
               order: order0,
             },
