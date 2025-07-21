@@ -25,7 +25,7 @@ type Inputs = {
   description: string
   statusId: string
   categoryId: string
-  dueDate?: Date
+  dueDate?: Date | null
 }
 
 export default function TaskDetailsModal({
@@ -157,8 +157,8 @@ export default function TaskDetailsModal({
             <Controller
               control={control}
               name="dueDate"
-              render={({ field }) => (
-                <DatePicker value={field.value} onChange={field.onChange} placeholder="Due date" />
+              render={({ field: { value, onChange } }) => (
+                <DatePicker value={value ?? undefined} onChange={onChange} placeholder="Due date" />
               )}
             />
           </Field>
