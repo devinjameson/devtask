@@ -4,16 +4,6 @@ A modern task management application built with Next.js, TypeScript, and Effect.
 Features drag-and-drop task organization, multiple user profiles, filtering, and
 a clean, Linear-inspired design.
 
-## ✨ Features
-
-- **Task Management**: Create, edit, delete, and organize tasks with due dates and categories
-- **Multiple Profiles**: Switch between different contexts (work, personal, etc.)
-- **Drag & Drop**: Intuitive task organization with dnd-kit
-- **Search & Filter**: Real-time search and filtering by status/category
-- **Responsive Design**: Works seamlessly on desktop and mobile
-- **Interactive Onboarding**: New users get helpful tutorial tasks
-- **Type Safety**: End-to-end TypeScript with Prisma
-
 ## 🛠 Tech Stack
 
 - **Framework**: Next.js 15 with App Router
@@ -28,29 +18,22 @@ a clean, Linear-inspired design.
 
 ## 📋 Requirements
 
-Before getting started, you'll need to install these tools:
+Before getting started, you'll need to install these tools.
 
-### Install with Homebrew (macOS)
+### Prerequisites
+
+- Node (current LTS version recommended)
+- pnpm
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Supabase CLI](https://supabase.com/docs/guides/cli/getting-started)
+
+#### Install with Homebrew (recommended)
 
 ```bash
-# Install Node.js (for pnpm)
-brew install node
-
-# Install pnpm package manager
 brew install pnpm
-
-# Install Docker Desktop
 brew install --cask docker
-
-# Install Supabase CLI
 brew install supabase/tap/supabase
 ```
-
-### Manual Installation
-
-- **Docker Desktop**: [Download from docker.com](https://www.docker.com/products/docker-desktop/)
-- **Supabase CLI**: [Installation guide](https://supabase.com/docs/guides/cli/getting-started)
-- **pnpm**: `npm install -g pnpm`
 
 ## 🚀 Getting Started
 
@@ -86,10 +69,10 @@ DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
 
 ### 4. Database Setup
 
-Reset and seed your local database:
+Reset and seed your local development database:
 
 ```bash
-pnpm db:reset:local
+pnpm db:reset
 ```
 
 This command will:
@@ -106,7 +89,7 @@ This command will:
 pnpm dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) and log in with:
+Visit [http://localhost:3000](http://localhost:3000). Create a new account or log in with:
 
 ```
 Email: demo@example.com
@@ -134,7 +117,7 @@ pnpm test:supabase
 cp .env.test.example .env.test
 ```
 
-Update `.env.test` with test database credentials (different port from main instance).
+Update `.env.test` with the test database credentials from Supabase.
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:64321
@@ -154,7 +137,10 @@ pnpm test:db:migrate
 ### Running Tests
 
 ```bash
-# Start the test server
+# Start test Supabase instance (if it's not already running)
+pnpm test:supabase
+
+# Start test server
 pnpm test:server
 
 # Run tests once
@@ -167,42 +153,27 @@ pnpm test
 pnpm test:ui
 ```
 
-### Test Coverage
-
-The test suite includes:
-
-- ✅ API endpoint testing (CRUD operations)
-- ✅ Authentication and authorization
-- ✅ Cross-user security verification
-- ✅ Database integrity
-- ✅ Error handling scenarios
-
 ## 🏗 Architecture & Philosophy
 
 ### Effect
 
-This project strategically uses [Effect](https://effect.website/) in specific
-areas where it provides clear value:
+This project uses [Effect](https://effect.website/) strategically in API route
+handlers for error handling and service composition. Each route handler follows
+a consistent pattern:
 
-**Why Effect?**
+1. Composes service layer Effects using Effect gen syntax
+1. Transforms errors into a unified format
+1. Converts the Effect into a NextResponse
 
-- **Cleaner Error Handling**: No more try/catch blocks or error-prone async code
-- **Composable Operations**: Chain database operations, API calls, and transformations elegantly
-- **Type-Safe Errors**: Errors are part of the type system, making them impossible to ignore
-- **Functional Approach**: Immutable, predictable code that's easier to test and reason about
-
-**Where We Use Effect:**
-
-- **API Routes**: Clean request/response handling with automatic error mapping
-- **Service Layer**: Database operations with composable error handling
-- **Data Transformations**: Type-safe, composable pipelines for processing data
+This approach eliminates try-catch blocks, provides type-safe error handling,
+and ensures consistent API responses across all endpoints.
 
 ## 🎯 Project Structure
 
 ```
 ├── src/app/                # Next.js App Router pages
-│   ├── api/                # API routes with Effect error handling
-│   └── app/                # Main application UI
+│   ├── api/                # Route Handlers
+│   └── app/                # Application UI
 ├── core/                   # Shared business logic
 │   ├── api/service/        # Effect-based service layer
 │   ├── lib/                # Utility functions
@@ -221,7 +192,7 @@ pnpm build                  # Build for production
 pnpm start                  # Start production server
 
 # Database
-pnpm db:reset:local         # Reset local database and seed data
+pnpm db:reset               # Reset development database and seed data
 
 # Code Quality
 pnpm lint                   # Run ESLint

@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "db:reset:local": "bash scripts/db-reset-local.sh",
+    "db:reset": "bash scripts/db-reset.sh",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write . --log-level=silent",
