@@ -30,3 +30,15 @@ export async function expectSuccess<T>(response: Response, status = 200): Promis
 
   return result.data
 }
+
+export async function expectError<T>(response: Response, status = 400): Promise<ApiResult<T>> {
+  expect(response.status).toBe(status)
+
+  const result: ApiResult<T> = await response.json()
+
+  if (result.success) {
+    throw new Error(`API request succeeded: ${result.data}`)
+  }
+
+  return result
+}

@@ -42,6 +42,28 @@ export const getTask = (
     return task
   })
 
+export const getTaskForProfile = (
+  id: string,
+  profileId: string,
+): Effect.Effect<TaskWithRelations, ServiceException | UnknownException> =>
+  Effect.gen(function* () {
+    const task = yield* Effect.tryPromise({
+      try: () =>
+        prisma.task.findUniqueOrThrow({
+          where: {
+            id,
+            profileId,
+          },
+          include: { category: true, status: true },
+        }),
+      catch: () => {
+        return { message: `Failed getTask`, status: 404 }
+      },
+    })
+
+    return task
+  })
+
 export type TaskWithRelations = Prisma.TaskGetPayload<{
   include: {
     category: true
@@ -102,6 +124,16 @@ export type PatchTaskPayload = {
   dueDate?: string | null
 }
 
+export type PatchTaskForProfilePayload = {
+  id: string
+  profileId: string
+  title?: string
+  statusId?: string
+  description?: string | null
+  categoryId?: string | null
+  dueDate?: string | null
+}
+
 export const patchTask = (
   payload: PatchTaskPayload,
 ): Effect.Effect<Task, ServiceException | UnknownException> =>
@@ -126,6 +158,71 @@ export const patchTask = (
     })
 
     return patchedTask
+  })
+
+export const patchTaskForProfile = (
+  payload: PatchTaskForProfilePayload,
+): Effect.Effect<Task, ServiceException | UnknownException> =>
+  Effect.gen(function* () {
+    const patchedTask = yield* Effect.tryPromise({
+      try: () =>
+        prisma.$transaction(async (tx) => {
+          return tx.task.update({
+            where: {
+              id: payload.id,
+              profileId: payload.profileId,
+            },
+            data: {
+              title: payload.title,
+              description: payload.description || null,
+              statusId: payload.statusId,
+              categoryId: payload.categoryId,
+              dueDate: mapNullable(payload.dueDate, (date) => new Date(date)),
+            },
+          })
+        }),
+      catch: () => {
+        return { message: `Failed patchTask`, status: 404 }
+      },
+    })
+
+    return patchedTask
+  })
+
+export const deleteTask = (id: string): Effect.Effect<Task, ServiceException | UnknownException> =>
+  Effect.gen(function* () {
+    const deletedTask = yield* Effect.tryPromise({
+      try: () =>
+        prisma.task.delete({
+          where: { id },
+        }),
+      catch: () => {
+        return { message: `Failed deleteTask`, status: 404 }
+      },
+    })
+
+    return deletedTask
+  })
+
+export const deleteTaskForProfile = (
+  id: string,
+  profileId: string,
+): Effect.Effect<Task, ServiceException | UnknownException> =>
+  Effect.gen(function* () {
+    const deletedTask = yield* Effect.tryPromise({
+      try: () =>
+        prisma.task.delete({
+          where: {
+            id,
+            profileId,
+          },
+        }),
+      catch: () => {
+        return { message: `Failed deleteTask`, status: 404 }
+      },
+    })
+
+    return deletedTask
   })
 
 type MoveTaskPayload = {

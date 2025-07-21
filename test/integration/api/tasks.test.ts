@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { Task } from '@/generated/prisma'
 import { MoveTaskBody, MoveTaskResultData } from '@/app/api/tasks/[id]/move/route'
-import { PatchTaskBody } from '@/app/api/tasks/[id]/route'
+import { DeleteTaskResultData, PatchTaskBody } from '@/app/api/tasks/[id]/route'
 import {
   CreateTaskBody,
   CreateTaskResultData,
@@ -10,7 +10,7 @@ import {
   TaskWithRelations,
 } from '@/app/api/tasks/route'
 
-import { expectSuccess, makeAuthenticatedRequest } from '../helpers/api'
+import { expectError, expectSuccess, makeAuthenticatedRequest } from '../helpers/api'
 import { createTestUser } from '../helpers/db'
 
 describe('GET /tasks', () => {
@@ -285,7 +285,30 @@ describe('GET /tasks/:id', () => {
       { method: 'GET' },
       cookies,
     )
-    expect(getResponse.status).toBe(404)
+    expectError(getResponse, 404)
+  })
+
+  it('does not return a task belonging to another user', async () => {
+    const { profile: profile1, cookies: cookies1 } = await createTestUser()
+    const { cookies: cookies2 } = await createTestUser()
+
+    const status = profile1.statuses[0]!
+
+    const createBody: CreateTaskBody = {
+      title: 'User 1 Task',
+      statusId: status.id,
+    }
+    const createResponse = await makeAuthenticatedRequest(
+      '/tasks',
+      { method: 'POST', body: JSON.stringify(createBody) },
+      cookies1,
+    )
+    const {
+      task: { id },
+    } = await expectSuccess<CreateTaskResultData>(createResponse, 201)
+
+    const getResponse = await makeAuthenticatedRequest(`/tasks/${id}`, { method: 'GET' }, cookies2)
+    expectError(getResponse, 404)
   })
 })
 
@@ -365,6 +388,132 @@ describe('PATCH /tasks/:id', () => {
     expect(updatedTask.description).toBeNull()
     expect(updatedTask.categoryId).toBeNull()
     expect(updatedTask.dueDate).toBeNull()
+  })
+
+  it('does not update a task belonging to another user', async () => {
+    const { profile: profile1, cookies: cookies1 } = await createTestUser()
+    const { cookies: cookies2 } = await createTestUser()
+
+    const status = profile1.statuses[0]!
+
+    const createBody: CreateTaskBody = {
+      title: 'User 1 Task',
+      statusId: status.id,
+    }
+    const createResponse = await makeAuthenticatedRequest(
+      '/tasks',
+      { method: 'POST', body: JSON.stringify(createBody) },
+      cookies1,
+    )
+    const {
+      task: { id },
+    } = await expectSuccess<CreateTaskResultData>(createResponse, 201)
+
+    const patchBody = {
+      title: 'Hacked by User 2',
+    }
+    const patchResponse = await makeAuthenticatedRequest(
+      `/tasks/${id}`,
+      { method: 'PATCH', body: JSON.stringify(patchBody) },
+      cookies2,
+    )
+    expectError(patchResponse, 404)
+
+    const getResponse = await makeAuthenticatedRequest(`/tasks/${id}`, { method: 'GET' }, cookies1)
+    const { task } = await expectSuccess<{ task: TaskWithRelations }>(getResponse)
+    expect(task.title).toBe(createBody.title)
+  })
+})
+
+describe('DELETE /tasks/:id', () => {
+  it('deletes a task', async () => {
+    const { profile, cookies } = await createTestUser()
+
+    const status = profile.statuses[0]!
+    const category = profile.categories[0]!
+
+    const createBody: CreateTaskBody = {
+      title: 'Task to Delete',
+      description: 'This task will be deleted',
+      statusId: status.id,
+      categoryId: category.id,
+    }
+    const createResponse = await makeAuthenticatedRequest(
+      '/tasks',
+      { method: 'POST', body: JSON.stringify(createBody) },
+      cookies,
+    )
+    const {
+      task: { id },
+    } = await expectSuccess<CreateTaskResultData>(createResponse, 201)
+
+    const getBeforeResponse = await makeAuthenticatedRequest(
+      `/tasks/${id}`,
+      { method: 'GET' },
+      cookies,
+    )
+    const { task: taskBefore } = await expectSuccess<{ task: TaskWithRelations }>(getBeforeResponse)
+    expect(taskBefore.id).toBe(id)
+
+    // Delete the task
+    const deleteResponse = await makeAuthenticatedRequest(
+      `/tasks/${id}`,
+      { method: 'DELETE' },
+      cookies,
+    )
+    const { task: deletedTask } = await expectSuccess<DeleteTaskResultData>(deleteResponse)
+
+    expect(deletedTask.id).toBe(id)
+    expect(deletedTask.title).toBe(createBody.title)
+
+    const getAfterResponse = await makeAuthenticatedRequest(
+      `/tasks/${id}`,
+      { method: 'GET' },
+      cookies,
+    )
+    expectError(getAfterResponse, 404)
+  })
+
+  it('returns 404 for a non-existent task', async () => {
+    const { cookies } = await createTestUser()
+
+    const deleteResponse = await makeAuthenticatedRequest(
+      '/tasks/non-existent-id',
+      { method: 'DELETE' },
+      cookies,
+    )
+    expectError(deleteResponse, 404)
+  })
+
+  it('does not delete a task belonging to another user', async () => {
+    const { profile: profile1, cookies: cookies1 } = await createTestUser()
+    const { cookies: cookies2 } = await createTestUser()
+
+    const status = profile1.statuses[0]!
+
+    const createBody: CreateTaskBody = {
+      title: 'User 1 Task',
+      statusId: status.id,
+    }
+    const createResponse = await makeAuthenticatedRequest(
+      '/tasks',
+      { method: 'POST', body: JSON.stringify(createBody) },
+      cookies1,
+    )
+    const {
+      task: { id },
+    } = await expectSuccess<CreateTaskResultData>(createResponse, 201)
+
+    const deleteResponse = await makeAuthenticatedRequest(
+      `/tasks/${id}`,
+      { method: 'DELETE' },
+      cookies2,
+    )
+    expectError(deleteResponse, 404)
+
+    const getResponse = await makeAuthenticatedRequest(`/tasks/${id}`, { method: 'GET' }, cookies1)
+    const { task } = await expectSuccess<{ task: TaskWithRelations }>(getResponse)
+    expect(task.id).toBe(id)
   })
 })
 

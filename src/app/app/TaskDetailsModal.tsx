@@ -17,6 +17,7 @@ import { DatePicker } from '@/ui/DatePicker'
 import { Modal } from '@/ui/Modal'
 
 import { TaskWithRelations } from '../api/tasks/route'
+import { useDeleteTaskMutation } from './useDeleteTaskMutation'
 import { usePatchTaskMutation } from './usePatchTaskMutation'
 
 type Inputs = {
@@ -51,6 +52,7 @@ export default function TaskDetailsModal({
   } = useForm<Inputs>()
 
   const patchTaskMutation = usePatchTaskMutation({ profileId })
+  const deleteTaskMutation = useDeleteTaskMutation({ profileId })
 
   useEffect(() => {
     if (open && task) {
@@ -89,7 +91,24 @@ export default function TaskDetailsModal({
     }
   }
 
+  const handleDelete = async () => {
+    if (!task) return
+
+    if (!confirm('Are you sure you want to delete this task?')) return
+
+    try {
+      await deleteTaskMutation.mutateAsync({ id: task.id })
+      onCloseAction()
+    } catch {
+      setError('root', {
+        type: 'manual',
+        message: 'Failed to delete task. Please try again.',
+      })
+    }
+  }
+
   const isSaveDisabled = !isDirty || patchTaskMutation.isPending
+  const isDeleteDisabled = deleteTaskMutation.isPending
 
   return (
     <Modal open={open} onCloseAction={onCloseAction} title={task?.title || 'Task Details'}>
@@ -146,9 +165,20 @@ export default function TaskDetailsModal({
 
           {errors.root && <Text className="text-red-500">{errors.root.message}</Text>}
 
-          <Button type="submit" className="w-full" disabled={isSaveDisabled}>
-            Save Task
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              color="red"
+              onClick={handleDelete}
+              disabled={isDeleteDisabled}
+              className="flex-1"
+            >
+              Delete Task
+            </Button>
+            <Button type="submit" disabled={isSaveDisabled} className="flex-1">
+              Save Task
+            </Button>
+          </div>
         </form>
       ) : null}
     </Modal>
