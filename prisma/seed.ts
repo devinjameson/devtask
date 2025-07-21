@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 import { generateKeyBetween } from 'fractional-indexing'
 
+import { daysFromNow } from '@core/lib/date'
+
 import { PrismaClient } from '@/generated/prisma'
 
 const prisma = new PrismaClient()
@@ -177,5 +179,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect()
   })
-
-const daysFromNow = (days: number) => new Date(Date.now() + 1000 * 60 * 60 * 24 * days)

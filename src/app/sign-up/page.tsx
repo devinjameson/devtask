@@ -63,7 +63,6 @@ export default function SignUp() {
       return
     }
 
-    // Set up the session with active profile
     const sessionResult = await fetchApi<{ profileId: string }>(() =>
       fetch('/api/auth/session', { method: 'POST' }),
     )
