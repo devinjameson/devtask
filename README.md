@@ -231,14 +231,25 @@ pnpm test                   # Run tests in watch mode
 pnpm test:run               # Run tests once
 pnpm test:ui                # Run tests with Vitest UI
 pnpm test:server            # Start test server on port 3001
-pnpm test:db:push           # Push schema to test database
 pnpm test:supabase          # Start test Supabase instance
 pnpm test:supabase:stop     # Stop test Supabase instance
 pnpm test:supabase:status   # Check test Supabase status
-pnpm test:db:reset          # Reset test database
-pnpm test:db:migrate        # Apply migrations to test database
 pnpm test:start             # Start test Supabase and server together
+pnpm test:db:push           # Push schema to test database
+pnpm test:db:migrate        # Apply migrations to test database
+pnpm test:db:reset          # Reset test database
 ```
+
+## Next Steps
+
+There are a few features I would have liked to build that I didn't have time
+for:
+
+- CRUD operations for categories. Right now you just get "Creative", "Health",
+  and "Shopping".
+- CRUD operations for profiles. Right now you just get "Work" and "Personal".
+- UI treatment for overdue or due soon tasks.
+- e2e tests with Playwright.
 
 ## 📄 License
 
