@@ -5,6 +5,8 @@ import { fetchApi } from '@core/api/fetchApi'
 import { Status } from '@/generated/prisma'
 import { GetStatusesResultData } from '@/app/api/statuses/route'
 
+import { statusesQueryKey } from './queryKey'
+
 export const fetchStatuses = async (): Promise<Status[]> => {
   const result = await fetchApi<GetStatusesResultData>(() => fetch('/api/statuses'))
 
@@ -17,7 +19,7 @@ export const fetchStatuses = async (): Promise<Status[]> => {
 
 export function useStatuses({ profileId }: { profileId: string }) {
   return useQuery({
-    queryKey: ['statuses', { profileId }],
+    queryKey: statusesQueryKey(profileId),
     queryFn: fetchStatuses,
   })
 }

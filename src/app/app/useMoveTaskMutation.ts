@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ApiSuccess } from '@core/api/apiResult'
 
 import { MoveTaskBody, MoveTaskResult, MoveTaskResultData } from '../api/tasks/[id]/move/route'
+import { tasksQueryKey } from './queryKey'
 
 export type MoveTaskMutationParams = {
   taskId: string
@@ -31,7 +32,7 @@ export const useMoveTaskMutation = () => {
       return result
     },
     onSuccess: (_data, { profileId }) => {
-      queryClient.invalidateQueries({ queryKey: ['tasks', { profileId }] })
+      queryClient.invalidateQueries({ queryKey: tasksQueryKey(profileId) })
     },
   })
 }

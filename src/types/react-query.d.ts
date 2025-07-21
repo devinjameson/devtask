@@ -1,10 +1,6 @@
 import '@tanstack/react-query'
 
-type QueryKey =
-  | ['categories', { profileId: string }]
-  | ['profiles']
-  | ['statuses', { profileId: string }]
-  | ['tasks', { profileId: string }]
+import type { QueryKey } from '@/app/app/queryKey'
 
 declare module '@tanstack/react-query' {
   interface Register {

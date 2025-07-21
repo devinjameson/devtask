@@ -11,13 +11,13 @@ import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 import { Button } from '@/ui/catalyst/button'
 
 import { signOut } from './actions'
+import { useCategories } from './categoriesQuery'
+import { useProfiles } from './profilesQuery'
 import ProfileSwitcher from './ProfileSwitcher'
+import { useStatuses } from './statusesQuery'
 import TaskBoard from './TaskBoard'
-import { useCategories } from './useCategories'
+import { useTasks } from './tasksQuery'
 import { usePrefetchInactiveProfiles } from './usePrefetchInactiveProfiles'
-import { useProfiles } from './useProfiles'
-import { useStatuses } from './useStatuses'
-import { useTasks } from './useTasks'
 
 type Filters = {
   searchQuery: string
@@ -64,7 +64,7 @@ export default function App() {
 
   usePrefetchInactiveProfiles(profilesQueryResult.data, activeProfileId)
 
-  const combined = pipe(
+  const combinedData = pipe(
     asyncTasks,
     AsyncResult.combine(asyncStatuses),
     AsyncResult.combine(asyncProfiles),
@@ -93,7 +93,7 @@ export default function App() {
       </header>
 
       <main className="flex-1 p-4 flex flex-col gap-4">
-        {AsyncResult.match(combined, {
+        {AsyncResult.match(combinedData, {
           onOk: ([tasks, statuses, _profiles, categories]) => (
             <TaskBoard
               tasks={tasks}

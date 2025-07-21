@@ -5,6 +5,7 @@ import { fetchApi } from '@core/api/fetchApi'
 import { Category } from '@/generated/prisma'
 
 import { GetCategoriesResultData } from '../api/categories/route'
+import { categoriesQueryKey } from './queryKey'
 
 export const fetchCategories = async (): Promise<Category[]> => {
   const result = await fetchApi<GetCategoriesResultData>(() => fetch('/api/categories'))
@@ -18,7 +19,7 @@ export const fetchCategories = async (): Promise<Category[]> => {
 
 export function useCategories({ profileId }: { profileId: string }) {
   return useQuery({
-    queryKey: ['categories', { profileId }],
+    queryKey: categoriesQueryKey(profileId),
     queryFn: fetchCategories,
   })
 }
