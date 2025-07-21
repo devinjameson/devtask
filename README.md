@@ -1,4 +1,4 @@
-# DevTask
+# devtask
 
 A modern task management application built with Next.js, TypeScript, and Effect.
 Features drag-and-drop task organization, multiple user profiles, real-time
