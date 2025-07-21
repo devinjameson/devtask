@@ -11,18 +11,18 @@ export default function StatusColumn({
   status,
   taskIds,
   allTasks,
-  dragDisabled,
   disableAnimations,
   onAddTask,
   onClickTask,
+  dragDisabled = false,
 }: {
   status: Status
   taskIds: UniqueIdentifier[]
   allTasks: TaskWithRelations[]
-  dragDisabled: boolean
   disableAnimations: boolean
   onAddTask: (statusId: string) => void
   onClickTask: (taskId: string) => void
+  dragDisabled?: boolean
 }) {
   const { setNodeRef } = useDroppable({
     id: status.id,

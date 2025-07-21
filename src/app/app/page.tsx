@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { getCookie } from '@/lib/getCookie'
 import { AsyncResult } from '@core'
 import { useQueryClient } from '@tanstack/react-query'
@@ -9,7 +8,6 @@ import { pipe } from 'effect'
 import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 
 import { Button } from '@/ui/catalyst/button'
-import { Input } from '@/ui/catalyst/input'
 
 import { signOut } from './actions'
 import TaskBoard from './TaskBoard'
@@ -20,7 +18,6 @@ import { useTasks } from './useTasks'
 
 export default function App() {
   const queryClient = useQueryClient()
-  const [searchQuery, setSearchQuery] = useState('')
 
   const activeProfileId = getCookie(ACTIVE_PROFILE_COOKIE) ?? ''
 
@@ -56,13 +53,6 @@ export default function App() {
     <div className="flex flex-col flex-1">
       <header className="flex items-center justify-between bg-gray-100 px-4 py-3 gap-4">
         <h1 className="text-lg font-semibold text-gray-800">devtask</h1>
-        <div className="flex-1 max-w-md">
-          <Input
-            placeholder="Search tasks…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
         <Button onClick={handleSignOut} color="light">
           Sign out
         </Button>
@@ -71,12 +61,7 @@ export default function App() {
       <main className="flex-1 p-4 flex flex-col gap-4">
         {AsyncResult.match(combined, {
           onOk: ([tasks, statuses, _profiles, categories]) => (
-            <TaskBoard
-              tasks={tasks}
-              statuses={statuses}
-              categories={categories}
-              searchQuery={searchQuery}
-            />
+            <TaskBoard tasks={tasks} statuses={statuses} categories={categories} />
           ),
           onLoading: () => <div className="text-gray-500">Loading tasks...</div>,
           onErr: (error) => (

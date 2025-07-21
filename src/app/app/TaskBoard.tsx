@@ -31,6 +31,7 @@ import { Category, Status } from '@/generated/prisma'
 import { TaskWithRelations } from '@/app/api/tasks/route'
 
 import AddTaskModal from './AddTaskModal'
+import Filters from './Filters'
 import { coordinateGetter } from './multipleContainersKeyboardCoordinates'
 import StatusColumn from './StatusColumn'
 import TaskCard from './TaskCard'
@@ -43,12 +44,10 @@ export default function TaskBoard({
   tasks,
   statuses,
   categories,
-  searchQuery,
 }: {
   tasks: TaskWithRelations[]
   statuses: Status[]
   categories: Category[]
-  searchQuery: string
 }) {
   const moveTaskMutation = useMoveTaskMutation()
 
@@ -64,27 +63,21 @@ export default function TaskBoard({
   const [isTaskDetailsModalOpen, setIsTaskDetailsModalOpen] = useState(false)
   const [taskDetailsTaskId, setTaskDetailsTaskId] = useState<string | null>(null)
 
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedStatusId, setSelectedStatusId] = useState<string | null>(null)
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
+
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
   const lastOverId = useRef<UniqueIdentifier | null>(null)
   const recentlyMovedToNewContainer = useRef(false)
 
   const wasFilteringRef = useRef(false)
   const filteredTasks = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return tasks
-    }
+    return filterTasks(tasks, searchQuery, selectedStatusId, selectedCategoryId)
+  }, [tasks, searchQuery, selectedStatusId, selectedCategoryId])
 
-    const query = searchQuery.toLowerCase()
-
-    return tasks.filter(
-      (task) =>
-        task.title.toLowerCase().includes(query) ||
-        (task.description && task.description.toLowerCase().includes(query)),
-    )
-  }, [tasks, searchQuery])
-
-  const isFiltering = searchQuery.trim() !== ''
-  const isDragDisabled = isFiltering
+  const isFiltering =
+    searchQuery.trim() !== '' || selectedStatusId !== null || selectedCategoryId !== null
 
   const wasFiltering = wasFilteringRef.current
   const disableAnimations = isFiltering || wasFiltering
@@ -134,6 +127,18 @@ export default function TaskBoard({
       ),
     [activeId, dragTaskIdsByStatus],
   )
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query)
+  }
+
+  const handleStatusChange = (statusId: string | null) => {
+    setSelectedStatusId(statusId)
+  }
+
+  const handleCategoryChange = (categoryId: string | null) => {
+    setSelectedCategoryId(categoryId)
+  }
 
   const handleDragStart = ({ active }: DragStartEvent) => {
     setActiveId(active.id)
@@ -277,78 +282,88 @@ export default function TaskBoard({
   const dragOverlayTask = filteredTasks.find(({ id }) => id === activeId) ?? null
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={collisionDetectionStrategy()}
-      measuring={{
-        droppable: {
-          strategy: MeasuringStrategy.Always,
-        },
-      }}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
-    >
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-6 p-2 flex-1 overflow-hidden">
-        {statuses.map((status) => {
-          const taskIds = dragTaskIdsByStatus[status.id]
-
-          if (!taskIds) {
-            return <p key={status.id}>No tasks in this status</p>
-          }
-
-          return (
-            <StatusColumn
-              key={status.id}
-              status={status}
-              taskIds={taskIds}
-              allTasks={filteredTasks}
-              dragDisabled={isDragDisabled}
-              disableAnimations={disableAnimations}
-              onAddTask={(id) => {
-                setAddTaskStatusId(id)
-                setIsAddTaskModalOpen(true)
-              }}
-              onClickTask={(id) => {
-                setTaskDetailsTaskId(id)
-                setIsTaskDetailsModalOpen(true)
-              }}
-            />
-          )
-        })}
-      </div>
-
-      {createPortal(
-        <DragOverlay dropAnimation={null}>
-          {dragOverlayTask ? (
-            <TaskCard
-              task={dragOverlayTask}
-              dragDisabled={isDragDisabled}
-              disableAnimations={disableAnimations}
-              onClick={() => {}}
-            />
-          ) : null}
-        </DragOverlay>,
-        document.body,
-      )}
-
-      <AddTaskModal
-        open={isAddTaskModalOpen}
-        onCloseAction={() => setIsAddTaskModalOpen(false)}
-        statusId={addTaskStatusId}
+    <div className="p-2">
+      <Filters
         statuses={statuses}
         categories={categories}
+        searchQuery={searchQuery}
+        selectedStatusId={selectedStatusId}
+        selectedCategoryId={selectedCategoryId}
+        onSearchChange={handleSearchChange}
+        onChangeStatus={handleStatusChange}
+        onChangeCategory={handleCategoryChange}
       />
+      <DndContext
+        sensors={sensors}
+        collisionDetection={collisionDetectionStrategy()}
+        measuring={{
+          droppable: {
+            strategy: MeasuringStrategy.Always,
+          },
+        }}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-6 flex-1 overflow-hidden">
+          {statuses.map((status) => {
+            const taskIds = dragTaskIdsByStatus[status.id]
 
-      <TaskDetailsModal
-        open={isTaskDetailsModalOpen}
-        onCloseAction={() => setIsTaskDetailsModalOpen(false)}
-        task={taskDetailsTask ?? null}
-        statuses={statuses}
-        categories={categories}
-      />
-    </DndContext>
+            if (!taskIds) {
+              return <p key={status.id}>No tasks in this status</p>
+            }
+
+            return (
+              <StatusColumn
+                key={status.id}
+                status={status}
+                taskIds={taskIds}
+                allTasks={filteredTasks}
+                disableAnimations={disableAnimations}
+                onAddTask={(id) => {
+                  setAddTaskStatusId(id)
+                  setIsAddTaskModalOpen(true)
+                }}
+                onClickTask={(id) => {
+                  setTaskDetailsTaskId(id)
+                  setIsTaskDetailsModalOpen(true)
+                }}
+              />
+            )
+          })}
+        </div>
+
+        {createPortal(
+          <DragOverlay dropAnimation={null}>
+            {dragOverlayTask ? (
+              <TaskCard
+                task={dragOverlayTask}
+                disableAnimations={disableAnimations}
+                onClick={() => {}}
+              />
+            ) : null}
+          </DragOverlay>,
+          document.body,
+        )}
+
+        <AddTaskModal
+          open={isAddTaskModalOpen}
+          onCloseAction={() => setIsAddTaskModalOpen(false)}
+          statusId={addTaskStatusId}
+          statuses={statuses}
+          categories={categories}
+        />
+
+        <TaskDetailsModal
+          open={isTaskDetailsModalOpen}
+          onCloseAction={() => setIsTaskDetailsModalOpen(false)}
+          task={taskDetailsTask ?? null}
+          statuses={statuses}
+          categories={categories}
+        />
+      </DndContext>
+    </div>
   )
 }
 
@@ -458,4 +473,31 @@ const getAfterTaskId = ({
   const afterTaskId = otherTasks[overIndex - 1]
 
   return afterTaskId ? String(afterTaskId) : null
+}
+
+const filterTasks = (
+  tasks: TaskWithRelations[],
+  searchQuery: string,
+  selectedStatusId: string | null,
+  selectedCategoryId: string | null,
+): TaskWithRelations[] => {
+  return tasks.filter((task) => {
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      const matchesSearch =
+        task.title.toLowerCase().includes(query) ||
+        (task.description && task.description.toLowerCase().includes(query))
+      if (!matchesSearch) return false
+    }
+
+    if (selectedStatusId && task.statusId !== selectedStatusId) {
+      return false
+    }
+
+    if (selectedCategoryId && task.categoryId !== selectedCategoryId) {
+      return false
+    }
+
+    return true
+  })
 }
