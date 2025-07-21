@@ -6,22 +6,22 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "db:reset:local": "bash scripts/db-reset-local.sh",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write . --log-level=silent",
     "prep": "pnpm format && pnpm typecheck && pnpm lint",
-    "db:reset:local": "bash scripts/db-reset-local.sh",
     "test": "dotenv -e .env.test -- vitest",
-    "test:ui": "dotenv -e .env.test -- vitest --ui",
     "test:run": "dotenv -e .env.test -- vitest run",
+    "test:ui": "dotenv -e .env.test -- vitest --ui",
     "test:server": "NEXT_DIST_DIR=.next-test dotenv -e .env.test -- next dev --port 3001",
-    "test:db:push": "dotenv -e .env.test -- prisma db push",
     "test:supabase": "supabase start --workdir supabase-test",
     "test:supabase:stop": "supabase stop --workdir supabase-test",
     "test:supabase:status": "supabase status --workdir supabase-test",
-    "test:db:reset": "bash scripts/test-db-reset.sh",
+    "test:start": "pnpm test:supabase && pnpm test:server",
+    "test:db:push": "dotenv -e .env.test -- prisma db push",
     "test:db:migrate": "dotenv -e .env.test -- prisma migrate deploy",
-    "test:start": "pnpm test:supabase && pnpm test:server"
+    "test:db:reset": "bash scripts/test-db-reset.sh"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

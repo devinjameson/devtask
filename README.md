@@ -154,6 +154,9 @@ pnpm test:db:migrate
 ### Running Tests
 
 ```bash
+# Start the test server
+pnpm test:server
+
 # Run tests once
 pnpm test:run
 
