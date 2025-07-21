@@ -146,7 +146,7 @@ DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:64322/postgres
 
 ### Running Migrations for Test Database
 
-```
+```bash
 # Apply migrations to test database
 pnpm test:db:migrate
 ```
