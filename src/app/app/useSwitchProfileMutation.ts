@@ -19,10 +19,10 @@ export const useSwitchProfileMutation = () => {
       }
 
       const result: SelectProfileResult = await response.json()
+
       return result
     },
     onSuccess: () => {
-      // Force refetch all queries after successful profile switch
       queryClient.invalidateQueries()
     },
   })
