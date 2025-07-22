@@ -1,11 +1,8 @@
 import { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies'
-import { Database } from '@/types/supabase'
 import { createServerClient } from '@supabase/ssr'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 export const createClient = (cookieStore: ReadonlyRequestCookies) => {
   return createServerClient(supabaseUrl!, supabaseKey!, {
@@ -22,16 +19,6 @@ export const createClient = (cookieStore: ReadonlyRequestCookies) => {
           // user sessions.
         }
       },
-    },
-  })
-}
-
-export const createServiceRoleClient = () => {
-  return createSupabaseClient<Database>(supabaseUrl!, serviceRoleKey!, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false,
     },
   })
 }

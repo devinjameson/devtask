@@ -1,9 +1,6 @@
-import { createServiceRoleClient } from '@/lib/supabase/server'
-import { Database } from '@/types/supabase'
 import { Effect } from 'effect'
 import { UnknownException } from 'effect/Cause'
 import { generateKeyBetween } from 'fractional-indexing'
-import { v4 as uuidv4 } from 'uuid'
 
 import { daysFromNow } from '@core/lib/date'
 import { prisma } from '@core/prisma'
@@ -30,135 +27,137 @@ export const createUser = (
 ): Effect.Effect<UserWithProfiles, ServiceException | UnknownException> =>
   Effect.gen(function* () {
     const { id, email, firstName, lastName } = payload
-    const supabase = createServiceRoleClient()
 
-    const { data: existingUsers } = yield* Effect.tryPromise(() =>
-      supabase.from('User').select('id').eq('id', id),
+    const existing = yield* Effect.tryPromise(() =>
+      prisma.user.findUnique({
+        where: { id },
+      }),
     )
 
-    if (existingUsers && existingUsers.length > 0) {
+    if (existing) {
       return yield* Effect.fail({ message: 'User already exists', status: 400 })
     }
 
-    const userData: Database['public']['Tables']['User']['Insert'] = {
-      id,
-      email,
-      firstName,
-      lastName,
-    }
+    yield* Effect.tryPromise(() =>
+      prisma.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: {
+            id,
+            email,
+            firstName,
+            lastName,
+            profiles: {
+              create: [
+                {
+                  name: 'Personal',
+                  statuses: {
+                    createMany: {
+                      data: [{ name: 'Pending' }, { name: 'In Progress' }, { name: 'Completed' }],
+                    },
+                  },
+                  categories: {
+                    createMany: {
+                      data: [{ name: 'Shopping' }, { name: 'Health' }, { name: 'Creative' }],
+                    },
+                  },
+                },
+                {
+                  name: 'Work',
+                  statuses: {
+                    createMany: {
+                      data: [{ name: 'Pending' }, { name: 'In Progress' }, { name: 'Completed' }],
+                    },
+                  },
+                  categories: {
+                    createMany: {
+                      data: [{ name: 'Shopping' }, { name: 'Health' }, { name: 'Creative' }],
+                    },
+                  },
+                },
+              ],
+            },
+          },
+          include: {
+            profiles: {
+              include: {
+                statuses: true,
+              },
+            },
+          },
+        })
 
-    yield* Effect.tryPromise(() => supabase.from('User').insert(userData))
+        const personalProfile = user.profiles.find(({ name }) => name === 'Personal')!
+        const pendingStatus = personalProfile.statuses.find(({ name }) => name === 'Pending')!
+        const inProgressStatus = personalProfile.statuses.find(
+          ({ name }) => name === 'In Progress',
+        )!
+        const completedStatus = personalProfile.statuses.find(({ name }) => name === 'Completed')!
 
-    const personalProfileId = uuidv4()
-    const workProfileId = uuidv4()
+        const profileWithCategories = await tx.profile.findUnique({
+          where: { id: personalProfile.id },
+          include: { categories: true },
+        })
+        const shoppingCategory = profileWithCategories!.categories.find(
+          ({ name }) => name === 'Shopping',
+        )!
+        const healthCategory = profileWithCategories!.categories.find(
+          ({ name }) => name === 'Health',
+        )!
+        const creativeCategory = profileWithCategories!.categories.find(
+          ({ name }) => name === 'Creative',
+        )!
 
-    const personalProfileData: Database['public']['Tables']['Profile']['Insert'] = {
-      id: personalProfileId,
-      name: 'Personal',
-      userId: id,
-    }
+        const order0 = generateKeyBetween(null, null)
+        const order1 = generateKeyBetween(order0, null)
 
-    const workProfileData: Database['public']['Tables']['Profile']['Insert'] = {
-      id: workProfileId,
-      name: 'Work',
-      userId: id,
-    }
+        await tx.task.createMany({
+          data: [
+            {
+              title: 'Welcome to your task board! 👋',
+              description:
+                'Try dragging me to the "In Progress" column to see how easy it is to organize your tasks.',
+              statusId: pendingStatus.id,
+              profileId: personalProfile.id,
+              categoryId: creativeCategory.id,
+              dueDate: daysFromNow(1),
+              order: order0,
+            },
+            {
+              title: 'Create your first task',
+              description:
+                'Click the "+" button to add a new task. You can add descriptions, due dates, and categories, too!',
+              statusId: pendingStatus.id,
+              profileId: personalProfile.id,
+              categoryId: creativeCategory.id,
+              dueDate: daysFromNow(7),
+              order: order1,
+            },
+            {
+              title: 'Try editing me! ✏️',
+              description:
+                'Click on any task to edit its title, description, due date, or category. You can also delete tasks from here.',
+              statusId: inProgressStatus.id,
+              profileId: personalProfile.id,
+              categoryId: healthCategory.id,
+              dueDate: daysFromNow(0),
+              order: order0,
+            },
+            {
+              title: 'You completed your first task! 🎉',
+              description:
+                'Great job! When you finish tasks, drag them here or move them using the edit dialog.',
+              statusId: completedStatus.id,
+              profileId: personalProfile.id,
+              categoryId: healthCategory.id,
+              dueDate: null,
+              order: order0,
+            },
+          ],
+        })
 
-    yield* Effect.tryPromise(() => supabase.from('Profile').insert(personalProfileData))
-    yield* Effect.tryPromise(() => supabase.from('Profile').insert(workProfileData))
-
-    const statusData: Database['public']['Tables']['Status']['Insert'][] = [
-      { id: uuidv4(), name: 'Pending', profileId: personalProfileId },
-      { id: uuidv4(), name: 'In Progress', profileId: personalProfileId },
-      { id: uuidv4(), name: 'Completed', profileId: personalProfileId },
-      { id: uuidv4(), name: 'Pending', profileId: workProfileId },
-      { id: uuidv4(), name: 'In Progress', profileId: workProfileId },
-      { id: uuidv4(), name: 'Completed', profileId: workProfileId },
-    ]
-
-    yield* Effect.tryPromise(() => supabase.from('Status').insert(statusData))
-
-    const categoryData: Database['public']['Tables']['Category']['Insert'][] = [
-      { id: uuidv4(), name: 'Shopping', profileId: personalProfileId },
-      { id: uuidv4(), name: 'Health', profileId: personalProfileId },
-      { id: uuidv4(), name: 'Creative', profileId: personalProfileId },
-      { id: uuidv4(), name: 'Shopping', profileId: workProfileId },
-      { id: uuidv4(), name: 'Health', profileId: workProfileId },
-      { id: uuidv4(), name: 'Creative', profileId: workProfileId },
-    ]
-
-    yield* Effect.tryPromise(() => supabase.from('Category').insert(categoryData))
-
-    const statuses = yield* Effect.tryPromise(() =>
-      supabase.from('Status').select('*').eq('profileId', personalProfileId),
+        return user
+      }),
     )
-
-    const categories = yield* Effect.tryPromise(() =>
-      supabase.from('Category').select('*').eq('profileId', personalProfileId),
-    )
-
-    const pendingStatus = statuses.data!.find((s) => s.name === 'Pending')!
-    const inProgressStatus = statuses.data!.find((s) => s.name === 'In Progress')!
-    const completedStatus = statuses.data!.find((s) => s.name === 'Completed')!
-    const shoppingCategory = categories.data!.find((c) => c.name === 'Shopping')!
-    const healthCategory = categories.data!.find((c) => c.name === 'Health')!
-    const creativeCategory = categories.data!.find((c) => c.name === 'Creative')!
-
-    const order0 = generateKeyBetween(null, null)
-    const order1 = generateKeyBetween(order0, null)
-
-    const taskData: Database['public']['Tables']['Task']['Insert'][] = [
-      {
-        id: uuidv4(),
-        title: 'Welcome to your task board! 👋',
-        description:
-          'Try dragging me to the "In Progress" column to see how easy it is to organize your tasks.',
-        statusId: pendingStatus.id,
-        profileId: personalProfileId,
-        categoryId: creativeCategory.id,
-        dueDate: daysFromNow(1).toISOString(),
-        order: order0,
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: uuidv4(),
-        title: 'Create your first task',
-        description:
-          'Click the "+" button to add a new task. You can add descriptions, due dates, and categories, too!',
-        statusId: pendingStatus.id,
-        profileId: personalProfileId,
-        categoryId: creativeCategory.id,
-        dueDate: daysFromNow(7).toISOString(),
-        order: order1,
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: uuidv4(),
-        title: 'Try editing me! ✏️',
-        description:
-          'Click on any task to edit its title, description, due date, or category. You can also delete tasks from here.',
-        statusId: inProgressStatus.id,
-        profileId: personalProfileId,
-        categoryId: healthCategory.id,
-        dueDate: daysFromNow(0).toISOString(),
-        order: order0,
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: uuidv4(),
-        title: 'You completed your first task! 🎉',
-        description:
-          'Great job! When you finish tasks, drag them here or move them using the edit dialog.',
-        statusId: completedStatus.id,
-        profileId: personalProfileId,
-        categoryId: shoppingCategory.id,
-        dueDate: null,
-        order: order0,
-        updatedAt: new Date().toISOString(),
-      },
-    ]
-
-    yield* Effect.tryPromise(() => supabase.from('Task').insert(taskData))
 
     const userWithProfiles = yield* Effect.tryPromise(() =>
       prisma.user.findUnique({
