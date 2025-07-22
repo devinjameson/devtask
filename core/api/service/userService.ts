@@ -29,8 +29,12 @@ export const createUser = (
   payload: CreateUserPayload,
 ): Effect.Effect<UserWithProfiles, ServiceException | UnknownException> =>
   Effect.gen(function* () {
+    console.log('🏗️ UserService.createUser called with:', payload.id)
     const { id, email, firstName, lastName } = payload
+
+    console.log('🔑 Creating service role client...')
     const supabase = createServiceRoleClient()
+    console.log('✅ Service role client created')
 
     const { data: existingUsers } = yield* Effect.tryPromise(() =>
       supabase.from('User').select('id').eq('id', id),
