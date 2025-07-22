@@ -261,6 +261,7 @@ for:
 - CRUD operations for profiles. Right now you just get "Work" and "Personal".
 - UI treatment for overdue or due soon tasks.
 - e2e tests with Playwright.
+- Keyboard interaction support for drag-and-drop.
 
 ## 📄 License
 
