@@ -168,6 +168,43 @@ a consistent pattern:
 This approach eliminates try-catch blocks, provides type-safe error handling,
 and ensures consistent API responses across all endpoints.
 
+### State Modeling with AsyncResult and Option
+
+This project uses custom AsyncResult and Effect's Option types to explicitly
+model all possible states in the UI layer. This pattern prevents common bugs by
+making impossible states unrepresentable.
+
+**AsyncResult** handles async operations with three explicit states:
+
+- `Loading` - Operation in progress
+- `Ok(value)` - Success with data
+- `Err(error)` - Failure with error details
+
+**Option** (from Effect) explicitly handles potentially absent values:
+
+- `Some(value)` - Value exists
+- `None` - Value is absent
+
+**Example: Session Management**
+
+```tsx
+// Instead of: Session | null | undefined
+// We use: AsyncResult<Option<Session>>
+
+AsyncResult.match(sessionState, {
+  onLoading: () => <Spinner />,
+  onErr: (error) => <ErrorMessage error={error} />,
+  onOk: (maybeSession) =>
+    Option.match(maybeSession, {
+      onNone: () => <LoginPrompt />,
+      onSome: (session) => <AuthenticatedApp session={session} />,
+    }),
+})
+```
+
+This pattern makes managing asynchronous data and optional values easier
+to reason about and less error-prone.
+
 ## 🎯 Project Structure
 
 ```

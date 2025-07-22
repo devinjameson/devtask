@@ -70,11 +70,11 @@ export const combine =
     }
 
     if (isErr(a)) {
-      return err<U | W, [T, V]>(a.value)
+      return err<U, [T, V]>(a.value)
     }
 
     if (isErr(b)) {
-      return err<U | W, [T, V]>(b.value)
+      return err<W, [T, V]>(b.value)
     }
 
     return loading<[T, V], U | W>()
