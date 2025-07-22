@@ -4,7 +4,7 @@ A modern task management application built with Next.js, TypeScript, and Effect.
 Features drag-and-drop task organization, multiple user profiles, filtering, and
 a clean, Linear-inspired design.
 
-## Live Application
+## 🚀 Live App
 
 [www.devtask.dev](https://www.devtask.dev)
 
