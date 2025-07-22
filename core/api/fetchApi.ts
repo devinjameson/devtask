@@ -18,3 +18,15 @@ export async function fetchApi<T>(fetchFn: () => Promise<Response>): Promise<Api
     }
   }
 }
+
+export async function fetchWithCredentials<T>(
+  url: string,
+  options?: RequestInit,
+): Promise<ApiResult<T>> {
+  return fetchApi(() =>
+    fetch(url, {
+      ...options,
+      credentials: 'include',
+    }),
+  )
+}

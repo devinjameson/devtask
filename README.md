@@ -230,6 +230,7 @@ pnpm start                  # Start production server
 
 # Database
 pnpm db:reset               # Reset development database and seed data
+pnpm db:push                # Push schema to production database
 
 # Code Quality
 pnpm lint                   # Run ESLint

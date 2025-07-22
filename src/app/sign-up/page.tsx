@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 
-import { fetchApi } from '@core/api/fetchApi'
+import { fetchWithCredentials } from '@core/api/fetchApi'
 
 import { AuthLayout } from '@/ui/catalyst/auth-layout'
 import { Button } from '@/ui/catalyst/button'
@@ -49,13 +49,11 @@ export default function SignUp() {
       lastName,
     }
 
-    const result = await fetchApi<CreateUserResultData>(() =>
-      fetch('/api/user/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      }),
-    )
+    const result = await fetchWithCredentials<CreateUserResultData>('/api/user/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
 
     if (!result.success) {
       setError(result.error)
@@ -63,9 +61,9 @@ export default function SignUp() {
       return
     }
 
-    const sessionResult = await fetchApi<{ profileId: string }>(() =>
-      fetch('/api/auth/session', { method: 'POST' }),
-    )
+    const sessionResult = await fetchWithCredentials<{ profileId: string }>('/api/auth/session', {
+      method: 'POST',
+    })
 
     if (!sessionResult.success) {
       setError('Failed to set up profile')
