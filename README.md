@@ -17,8 +17,8 @@ a clean, Linear-inspired design.
 - **Auth**: Supabase Auth
 - **UI**: Tailwind CSS + Headless UI
 - **State**: TanStack Query
-- **Effect**: Effect for clean error handling
-- **Testing**: Vitest with integration tests
+- **Effect**: Typed errors, composability
+- **Testing**: Vitest for route handler integration tests
 
 ## 📋 Requirements
 
