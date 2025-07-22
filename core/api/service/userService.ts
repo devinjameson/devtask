@@ -89,20 +89,41 @@ export const createUser = (
 
     yield* Effect.tryPromise(() => supabase.from('Category').insert(categoryData))
 
-    const statuses = yield* Effect.tryPromise(() =>
+    const statusesResponse = yield* Effect.tryPromise(() =>
       supabase.from('Status').select('*').eq('profileId', personalProfileId),
     )
 
-    const categories = yield* Effect.tryPromise(() =>
+    const categoriesResponse = yield* Effect.tryPromise(() =>
       supabase.from('Category').select('*').eq('profileId', personalProfileId),
     )
 
-    const pendingStatus = statuses.data!.find((s) => s.name === 'Pending')!
-    const inProgressStatus = statuses.data!.find((s) => s.name === 'In Progress')!
-    const completedStatus = statuses.data!.find((s) => s.name === 'Completed')!
-    const shoppingCategory = categories.data!.find((c) => c.name === 'Shopping')!
-    const healthCategory = categories.data!.find((c) => c.name === 'Health')!
-    const creativeCategory = categories.data!.find((c) => c.name === 'Creative')!
+    if (!statusesResponse.data || !categoriesResponse.data) {
+      return yield* Effect.fail({
+        message: 'Failed to fetch created statuses and categories',
+        status: 500,
+      })
+    }
+
+    const pendingStatus = statusesResponse.data.find((s) => s.name === 'Pending')
+    const inProgressStatus = statusesResponse.data.find((s) => s.name === 'In Progress')
+    const completedStatus = statusesResponse.data.find((s) => s.name === 'Completed')
+    const shoppingCategory = categoriesResponse.data.find((c) => c.name === 'Shopping')
+    const healthCategory = categoriesResponse.data.find((c) => c.name === 'Health')
+    const creativeCategory = categoriesResponse.data.find((c) => c.name === 'Creative')
+
+    if (
+      !pendingStatus ||
+      !inProgressStatus ||
+      !completedStatus ||
+      !shoppingCategory ||
+      !healthCategory ||
+      !creativeCategory
+    ) {
+      return yield* Effect.fail({
+        message: 'Failed to find required statuses and categories',
+        status: 500,
+      })
+    }
 
     const order0 = generateKeyBetween(null, null)
     const order1 = generateKeyBetween(order0, null)
