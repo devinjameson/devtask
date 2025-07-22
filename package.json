@@ -23,7 +23,7 @@
     "test:db:push": "dotenv -e .env.test -- prisma db push",
     "test:db:migrate": "dotenv -e .env.test -- prisma migrate deploy",
     "test:db:reset": "bash scripts/test-db-reset.sh",
-    "vercel-build": "pnpm install --ignore-scripts=false && pnpm build"
+    "vercel-build": "pnpm install --dangerously-allow-all-builds && pnpm build"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
