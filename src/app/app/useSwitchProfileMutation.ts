@@ -1,10 +1,8 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 
 import { SelectProfileBody, SelectProfileResult } from '../api/profile/select/route'
 
 export const useSwitchProfileMutation = () => {
-  const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async ({ profileId }: { profileId: string }) => {
       const body: SelectProfileBody = { profileId }
@@ -21,9 +19,6 @@ export const useSwitchProfileMutation = () => {
       const result: SelectProfileResult = await response.json()
 
       return result
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries()
     },
   })
 }

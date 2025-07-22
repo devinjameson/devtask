@@ -21,15 +21,15 @@ export function usePrefetchInactiveProfiles(
       inactiveProfiles.forEach((profile) => {
         queryClient.prefetchQuery({
           queryKey: tasksQueryKey(profile.id),
-          queryFn: fetchTasks,
+          queryFn: () => fetchTasks(profile.id),
         })
         queryClient.prefetchQuery({
           queryKey: statusesQueryKey(profile.id),
-          queryFn: fetchStatuses,
+          queryFn: () => fetchStatuses(profile.id),
         })
         queryClient.prefetchQuery({
           queryKey: categoriesQueryKey(profile.id),
-          queryFn: fetchCategories,
+          queryFn: () => fetchCategories(profile.id),
         })
       })
     }

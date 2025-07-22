@@ -1,9 +1,8 @@
-import { Fragment, useState } from 'react'
-import { getCookie } from '@/lib/getCookie'
+import { Fragment } from 'react'
+import { $activeProfileId, setActiveProfileId } from '@/stores/profileStore'
 import { CheckIcon, ChevronDownIcon } from '@heroicons/react/16/solid'
+import { useStore } from '@nanostores/react'
 import clsx from 'clsx'
-
-import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 
 import { Profile } from '@/generated/prisma'
 
@@ -23,22 +22,21 @@ export default function ProfileSwitcher() {
   const profiles = profilesQuery.data ?? []
   const switchProfileMutation = useSwitchProfileMutation()
 
-  const serverActiveProfileId = getCookie(ACTIVE_PROFILE_COOKIE) ?? ''
-  const [optimisticActiveProfileId, setOptimisticActiveProfileId] = useState<string | null>(null)
-
-  const activeProfileId = optimisticActiveProfileId ?? serverActiveProfileId
+  const activeProfileId = useStore($activeProfileId)
   const activeProfile = profiles.find(({ id }) => id === activeProfileId)
 
   const sortedProfiles = [...profiles].sort((a, b) => a.name.localeCompare(b.name))
 
   const handleProfileSwitch = (profile: Profile) => {
-    setOptimisticActiveProfileId(profile.id)
+    const previousProfileId = activeProfileId
+
+    setActiveProfileId(profile.id)
 
     switchProfileMutation.mutate(
       { profileId: profile.id },
       {
-        onSettled: () => {
-          setOptimisticActiveProfileId(null)
+        onError: () => {
+          setActiveProfileId(previousProfileId)
         },
       },
     )

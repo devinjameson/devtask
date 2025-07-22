@@ -1,5 +1,6 @@
 import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getCookie } from '@/lib/getCookie'
+import { AsyncResult } from '@core'
 import {
   Active,
   closestCenter,
@@ -39,9 +40,9 @@ import { MoveTaskMutationParams, useMoveTaskMutation } from './useMoveTaskMutati
 type DragTaskIdsByStatus = Record<UniqueIdentifier, UniqueIdentifier[]>
 
 export default function TaskBoard({
-  tasks,
-  statuses,
-  categories,
+  asyncTasks,
+  asyncStatuses,
+  asyncCategories,
   searchQuery,
   selectedStatusId,
   selectedCategoryId,
@@ -49,9 +50,9 @@ export default function TaskBoard({
   onStatusChange,
   onCategoryChange,
 }: {
-  tasks: TaskWithRelations[]
-  statuses: Status[]
-  categories: Category[]
+  asyncTasks: AsyncResult.AsyncResult<TaskWithRelations[]>
+  asyncStatuses: AsyncResult.AsyncResult<Status[]>
+  asyncCategories: AsyncResult.AsyncResult<Category[]>
   searchQuery: string
   selectedStatusId: string | null
   selectedCategoryId: string | null
@@ -75,6 +76,13 @@ export default function TaskBoard({
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
   const lastOverId = useRef<UniqueIdentifier | null>(null)
   const recentlyMovedToNewContainer = useRef(false)
+
+  const tasks = useMemo(() => AsyncResult.getOrElse(asyncTasks, () => []), [asyncTasks])
+  const statuses = useMemo(() => AsyncResult.getOrElse(asyncStatuses, () => []), [asyncStatuses])
+  const categories = useMemo(
+    () => AsyncResult.getOrElse(asyncCategories, () => []),
+    [asyncCategories],
+  )
 
   const wasFilteringRef = useRef(false)
   const filteredTasks = useMemo(() => {

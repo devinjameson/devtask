@@ -8,8 +8,18 @@ export const makeAuthenticatedRequest = async (
   path: string,
   options: RequestInit,
   cookies: string,
+  queryParams?: Record<string, string>,
 ) => {
-  return fetch(`${TEST_BASE_URL}${path}`, {
+  const buildUrl = () => {
+    if (!queryParams) {
+      return `${TEST_BASE_URL}${path}`
+    }
+
+    const params = new URLSearchParams(queryParams)
+    return `${TEST_BASE_URL}${path}?${params.toString()}`
+  }
+
+  return fetch(buildUrl(), {
     ...options,
     headers: {
       ...options.headers,

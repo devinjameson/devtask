@@ -30,6 +30,7 @@ describe('GET /tasks', () => {
       '/tasks',
       { method: 'POST', body: JSON.stringify(firstBody) },
       cookies,
+      { profileId: profile.id },
     )
     expectSuccess(firstCreateResponse, 201)
 
@@ -43,10 +44,13 @@ describe('GET /tasks', () => {
       '/tasks',
       { method: 'POST', body: JSON.stringify(secondBody) },
       cookies,
+      { profileId: profile.id },
     )
     expectSuccess(secondCreateResponse, 201)
 
-    const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
+    const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies, {
+      profileId: profile.id,
+    })
     const { tasks } = await expectSuccess<GetTasksResultData>(getResponse)
 
     expect(tasks.length).toBe(2)
@@ -66,9 +70,11 @@ describe('GET /tasks', () => {
   })
 
   it('returns an empty array when no tasks exist', async () => {
-    const { cookies } = await createTestUser()
+    const { profile, cookies } = await createTestUser()
 
-    const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
+    const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies, {
+      profileId: profile.id,
+    })
     const { tasks } = await expectSuccess<GetTasksResultData>(getResponse)
 
     expect(tasks).toEqual([])
@@ -95,10 +101,13 @@ describe('POST /tasks', () => {
       '/tasks',
       { method: 'POST', body: JSON.stringify(createBody) },
       cookies,
+      { profileId: profile.id },
     )
     expectSuccess(createResponse, 201)
 
-    const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
+    const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies, {
+      profileId: profile.id,
+    })
     const { tasks } = await expectSuccess<GetTasksResultData>(getResponse)
 
     const firstTask = tasks[0]!
@@ -134,6 +143,7 @@ describe('PATCH /tasks/:id/move', () => {
         '/tasks',
         { method: 'POST', body: JSON.stringify(createBody) },
         cookies,
+        { profileId: profile.id },
       )
       const {
         task: { id },
@@ -141,7 +151,9 @@ describe('PATCH /tasks/:id/move', () => {
       tasksWithIds.push({ id, title: createBody.title })
     }
 
-    const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
+    const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies, {
+      profileId: profile.id,
+    })
     const { tasks: initialTasks } = await expectSuccess<GetTasksResultData>(getResponse)
 
     const initialPendingTasks = initialTasks.filter((task) => task.statusId === pendingStatus.id)
@@ -169,7 +181,9 @@ describe('PATCH /tasks/:id/move', () => {
       )
       expectSuccess<MoveTaskResultData>(moveResponse)
 
-      const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
+      const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies, {
+        profileId: profile.id,
+      })
       const { tasks } = await expectSuccess<GetTasksResultData>(getResponse)
 
       const pendingTasks = tasks.filter(({ statusId }) => statusId === pendingStatus.id)
@@ -190,7 +204,9 @@ describe('PATCH /tasks/:id/move', () => {
       )
       expectSuccess<MoveTaskResultData>(moveResponse)
 
-      const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
+      const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies, {
+        profileId: profile.id,
+      })
       const { tasks } = await expectSuccess<GetTasksResultData>(getResponse)
 
       const pendingTasks = tasks.filter(({ statusId }) => statusId === pendingStatus.id)
@@ -211,7 +227,9 @@ describe('PATCH /tasks/:id/move', () => {
       )
       expectSuccess<MoveTaskResultData>(moveResponse)
 
-      const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
+      const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies, {
+        profileId: profile.id,
+      })
       const { tasks } = await expectSuccess<GetTasksResultData>(getResponse)
 
       const pendingTasks = tasks.filter(({ statusId }) => statusId === pendingStatus.id)
@@ -233,7 +251,9 @@ describe('PATCH /tasks/:id/move', () => {
       )
       expectSuccess<MoveTaskResultData>(moveResponse)
 
-      const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies)
+      const getResponse = await makeAuthenticatedRequest('/tasks', { method: 'GET' }, cookies, {
+        profileId: profile.id,
+      })
       const { tasks } = await expectSuccess<GetTasksResultData>(getResponse)
 
       const pendingTasks = tasks.filter(({ statusId }) => statusId === pendingStatus.id)
@@ -262,6 +282,7 @@ describe('GET /tasks/:id', () => {
       '/tasks',
       { method: 'POST', body: JSON.stringify(createBody) },
       cookies,
+      { profileId: profile.id },
     )
     const {
       task: { id },
@@ -302,6 +323,7 @@ describe('GET /tasks/:id', () => {
       '/tasks',
       { method: 'POST', body: JSON.stringify(createBody) },
       cookies1,
+      { profileId: profile1.id },
     )
     const {
       task: { id },
@@ -329,6 +351,7 @@ describe('PATCH /tasks/:id', () => {
       '/tasks',
       { method: 'POST', body: JSON.stringify(createBody) },
       cookies,
+      { profileId: profile.id },
     )
     const {
       task: { id },
@@ -368,6 +391,7 @@ describe('PATCH /tasks/:id', () => {
       '/tasks',
       { method: 'POST', body: JSON.stringify(createBody) },
       cookies,
+      { profileId: profile.id },
     )
     const {
       task: { id },
@@ -404,6 +428,7 @@ describe('PATCH /tasks/:id', () => {
       '/tasks',
       { method: 'POST', body: JSON.stringify(createBody) },
       cookies1,
+      { profileId: profile1.id },
     )
     const {
       task: { id },
@@ -442,6 +467,7 @@ describe('DELETE /tasks/:id', () => {
       '/tasks',
       { method: 'POST', body: JSON.stringify(createBody) },
       cookies,
+      { profileId: profile.id },
     )
     const {
       task: { id },
@@ -499,6 +525,7 @@ describe('DELETE /tasks/:id', () => {
       '/tasks',
       { method: 'POST', body: JSON.stringify(createBody) },
       cookies1,
+      { profileId: profile1.id },
     )
     const {
       task: { id },

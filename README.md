@@ -267,6 +267,8 @@ for:
 - UI treatment for overdue or due soon tasks.
 - e2e tests with Playwright.
 - Keyboard interaction support for drag-and-drop.
+- Investigate using localStorage to store active profile id vs. cookies for
+  simpler client-side state management.
 
 ## 📄 License
 

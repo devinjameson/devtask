@@ -8,7 +8,7 @@ export const useCreateTaskMutation = ({ profileId }: { profileId: string }) => {
 
   return useMutation({
     mutationFn: async (body: CreateTaskBody) => {
-      const response = await fetch('/api/tasks', {
+      const response = await fetch(`/api/tasks?profileId=${encodeURIComponent(profileId)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,12 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { getCookie } from '@/lib/getCookie'
+import { $activeProfileId } from '@/stores/profileStore'
 import { AsyncResult } from '@core'
+import { useStore } from '@nanostores/react'
 import { useQueryClient } from '@tanstack/react-query'
-import { pipe } from 'effect'
-
-import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 
 import { Button } from '@/ui/catalyst/button'
 
@@ -36,7 +34,7 @@ export default function App() {
 
   const [filtersByProfile, setFiltersByProfile] = useState<Record<string, Filters>>({})
 
-  const activeProfileId = getCookie(ACTIVE_PROFILE_COOKIE) ?? ''
+  const activeProfileId = useStore($activeProfileId)
 
   const currentFilters = filtersByProfile[activeProfileId] ?? defaultFilters
 
@@ -56,29 +54,22 @@ export default function App() {
   const statusesQueryResult = useStatuses({ profileId: activeProfileId })
   const asyncStatuses = AsyncResult.fromQueryResult(statusesQueryResult)
 
-  const profilesQueryResult = useProfiles()
-  const asyncProfiles = AsyncResult.fromQueryResult(profilesQueryResult)
-
   const categoriesQueryResult = useCategories({ profileId: activeProfileId })
   const asyncCategories = AsyncResult.fromQueryResult(categoriesQueryResult)
 
+  const profilesQueryResult = useProfiles()
   usePrefetchInactiveProfiles(profilesQueryResult.data, activeProfileId)
-
-  const combinedData = pipe(
-    asyncTasks,
-    AsyncResult.combine(asyncStatuses),
-    AsyncResult.combine(asyncProfiles),
-    AsyncResult.combine(asyncCategories),
-    AsyncResult.map(
-      ([categories, [profiles, [statuses, tasks]]]) =>
-        [tasks, statuses, profiles, categories] as const,
-    ),
-  )
 
   const handleSignOut = async () => {
     queryClient.clear()
     await signOut()
   }
+
+  // const isProfileSwitching = tasksQueryResult.isFetching && tasksQueryResult.data
+  //
+  // if (isProfileSwitching) {
+  //   return <div className="flex items-center justify-center h-screen">Switching profiles...</div>
+  // }
 
   return (
     <div className="flex flex-col flex-1">
@@ -93,25 +84,17 @@ export default function App() {
       </header>
 
       <main className="flex-1 p-4 flex flex-col gap-4">
-        {AsyncResult.match(combinedData, {
-          onOk: ([tasks, statuses, _profiles, categories]) => (
-            <TaskBoard
-              tasks={tasks}
-              statuses={statuses}
-              categories={categories}
-              searchQuery={currentFilters.searchQuery}
-              selectedStatusId={currentFilters.selectedStatusId}
-              selectedCategoryId={currentFilters.selectedCategoryId}
-              onSearchChange={(searchQuery) => updateFilters({ searchQuery })}
-              onStatusChange={(selectedStatusId) => updateFilters({ selectedStatusId })}
-              onCategoryChange={(selectedCategoryId) => updateFilters({ selectedCategoryId })}
-            />
-          ),
-          onLoading: () => <div className="text-gray-500">Loading tasks...</div>,
-          onErr: (error) => (
-            <div className="text-red-600">Error loading tasks: {error.message}</div>
-          ),
-        })}
+        <TaskBoard
+          asyncTasks={asyncTasks}
+          asyncStatuses={asyncStatuses}
+          asyncCategories={asyncCategories}
+          searchQuery={currentFilters.searchQuery}
+          selectedStatusId={currentFilters.selectedStatusId}
+          selectedCategoryId={currentFilters.selectedCategoryId}
+          onSearchChange={(searchQuery) => updateFilters({ searchQuery })}
+          onStatusChange={(selectedStatusId) => updateFilters({ selectedStatusId })}
+          onCategoryChange={(selectedCategoryId) => updateFilters({ selectedCategoryId })}
+        />
       </main>
     </div>
   )
