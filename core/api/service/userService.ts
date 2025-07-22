@@ -36,9 +36,11 @@ export const createUser = (
     const supabase = createServiceRoleClient()
     console.log('✅ Service role client created')
 
+    console.log('🔍 Checking for existing user...')
     const { data: existingUsers } = yield* Effect.tryPromise(() =>
       supabase.from('User').select('id').eq('id', id),
     )
+    console.log('✅ Existing user check completed:', existingUsers?.length || 0)
 
     if (existingUsers && existingUsers.length > 0) {
       return yield* Effect.fail({ message: 'User already exists', status: 400 })
@@ -51,10 +53,13 @@ export const createUser = (
       lastName,
     }
 
+    console.log('👤 Inserting user record...')
     yield* Effect.tryPromise(() => supabase.from('User').insert(userData))
+    console.log('✅ User record inserted')
 
     const personalProfileId = uuidv4()
     const workProfileId = uuidv4()
+    console.log('🆔 Generated profile IDs:', { personalProfileId, workProfileId })
 
     const personalProfileData: Database['public']['Tables']['Profile']['Insert'] = {
       id: personalProfileId,
@@ -68,8 +73,11 @@ export const createUser = (
       userId: id,
     }
 
+    console.log('👥 Inserting profiles...')
     yield* Effect.tryPromise(() => supabase.from('Profile').insert(personalProfileData))
+    console.log('✅ Personal profile inserted')
     yield* Effect.tryPromise(() => supabase.from('Profile').insert(workProfileData))
+    console.log('✅ Work profile inserted')
 
     const statusData: Database['public']['Tables']['Status']['Insert'][] = [
       { id: uuidv4(), name: 'Pending', profileId: personalProfileId },
@@ -80,7 +88,9 @@ export const createUser = (
       { id: uuidv4(), name: 'Completed', profileId: workProfileId },
     ]
 
+    console.log('📊 Inserting statuses...')
     yield* Effect.tryPromise(() => supabase.from('Status').insert(statusData))
+    console.log('✅ Statuses inserted')
 
     const categoryData: Database['public']['Tables']['Category']['Insert'][] = [
       { id: uuidv4(), name: 'Shopping', profileId: personalProfileId },
@@ -91,29 +101,46 @@ export const createUser = (
       { id: uuidv4(), name: 'Creative', profileId: workProfileId },
     ]
 
+    console.log('🏷️ Inserting categories...')
     yield* Effect.tryPromise(() => supabase.from('Category').insert(categoryData))
+    console.log('✅ Categories inserted')
 
+    console.log('🔍 Fetching created statuses...')
     const statusesResponse = yield* Effect.tryPromise(() =>
       supabase.from('Status').select('*').eq('profileId', personalProfileId),
     )
+    console.log('✅ Statuses fetched:', statusesResponse.data?.length || 0)
 
+    console.log('🔍 Fetching created categories...')
     const categoriesResponse = yield* Effect.tryPromise(() =>
       supabase.from('Category').select('*').eq('profileId', personalProfileId),
     )
+    console.log('✅ Categories fetched:', categoriesResponse.data?.length || 0)
 
     if (!statusesResponse.data || !categoriesResponse.data) {
+      console.log('❌ Failed to fetch created statuses and categories')
       return yield* Effect.fail({
         message: 'Failed to fetch created statuses and categories',
         status: 500,
       })
     }
 
+    console.log('🔍 Finding required statuses and categories...')
     const pendingStatus = statusesResponse.data.find((s) => s.name === 'Pending')
     const inProgressStatus = statusesResponse.data.find((s) => s.name === 'In Progress')
     const completedStatus = statusesResponse.data.find((s) => s.name === 'Completed')
     const shoppingCategory = categoriesResponse.data.find((c) => c.name === 'Shopping')
     const healthCategory = categoriesResponse.data.find((c) => c.name === 'Health')
     const creativeCategory = categoriesResponse.data.find((c) => c.name === 'Creative')
+
+    console.log('🔍 Found items:', {
+      pendingStatus: !!pendingStatus,
+      inProgressStatus: !!inProgressStatus,
+      completedStatus: !!completedStatus,
+      shoppingCategory: !!shoppingCategory,
+      healthCategory: !!healthCategory,
+      creativeCategory: !!creativeCategory,
+    })
 
     if (
       !pendingStatus ||
@@ -123,14 +150,17 @@ export const createUser = (
       !healthCategory ||
       !creativeCategory
     ) {
+      console.log('❌ Failed to find required statuses and categories')
       return yield* Effect.fail({
         message: 'Failed to find required statuses and categories',
         status: 500,
       })
     }
 
+    console.log('🔢 Generating task order keys...')
     const order0 = generateKeyBetween(null, null)
     const order1 = generateKeyBetween(order0, null)
+    console.log('✅ Order keys generated')
 
     const taskData: Database['public']['Tables']['Task']['Insert'][] = [
       {
@@ -183,8 +213,11 @@ export const createUser = (
       },
     ]
 
+    console.log('📝 Inserting tasks...')
     yield* Effect.tryPromise(() => supabase.from('Task').insert(taskData))
+    console.log('✅ Tasks inserted')
 
+    console.log('🔍 Fetching created user with profiles via Prisma...')
     const userWithProfiles = yield* Effect.tryPromise(() =>
       prisma.user.findUnique({
         where: { id },
@@ -193,10 +226,13 @@ export const createUser = (
         },
       }),
     )
+    console.log('✅ User fetch completed:', !!userWithProfiles)
 
     if (!userWithProfiles) {
+      console.log('❌ User not found after creation')
       return yield* Effect.fail({ message: 'Failed to create user', status: 500 })
     }
 
+    console.log('🎉 User creation fully completed:', userWithProfiles.id)
     return userWithProfiles
   })
