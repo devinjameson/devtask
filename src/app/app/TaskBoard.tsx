@@ -32,6 +32,7 @@ import { TaskWithRelations } from '@/app/api/tasks/route'
 import AddTaskModal from './AddTaskModal'
 import Filters from './Filters'
 import StatusColumn from './StatusColumn'
+import TaskBoardSkeleton from './TaskBoardSkeleton'
 import TaskCard from './TaskCard'
 import TaskDetailsModal from './TaskDetailsModal'
 import { MoveTaskMutationParams, useMoveTaskMutation } from './useMoveTaskMutation'
@@ -276,6 +277,17 @@ export default function TaskBoard({
     : null
 
   const dragOverlayTask = filteredTasks.find(({ id }) => id === activeId) ?? null
+
+  const isLoading =
+    tasksQueryResult.isLoading || statusesQueryResult.isLoading || categoriesQueryResult.isLoading
+
+  if (isLoading) {
+    return (
+      <div className="p-2">
+        <TaskBoardSkeleton />
+      </div>
+    )
+  }
 
   return (
     <div className="p-2">
