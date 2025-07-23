@@ -69,7 +69,7 @@ export default function App() {
         <ProfileSwitcher />
 
         <Button onClick={handleSignOut} color="light">
-          Sign out
+          Sign Out
         </Button>
       </header>
 

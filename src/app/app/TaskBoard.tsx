@@ -284,15 +284,11 @@ export default function TaskBoard({
     tasksQueryResult.isSuccess && statusesQueryResult.isSuccess && categoriesQueryResult.isSuccess
 
   if (!isReady) {
-    return (
-      <div className="p-2">
-        <TaskBoardSkeleton />
-      </div>
-    )
+    return <TaskBoardSkeleton />
   }
 
   return (
-    <div className="p-2">
+    <div className="p-2 flex flex-col flex-1">
       <Filters
         statuses={statuses}
         categories={categories}
@@ -317,7 +313,7 @@ export default function TaskBoard({
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-6 flex-1 overflow-hidden">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-6 flex-1 overflow-hidden mt-2">
           {statuses
             .filter((status) => selectedStatusId === null || status.id === selectedStatusId)
             .map((status) => {

@@ -58,7 +58,7 @@ export default function StatusColumn({
       </div>
 
       <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
-        <ul className="flex flex-col gap-4 min-h-[100px] flex-1">
+        <ul className="flex flex-col gap-4 flex-1">
           {taskIds.map((taskId) => {
             const task = allTasks.find(({ id }) => id === taskId)
 
