@@ -269,8 +269,8 @@ for:
 - UI treatment for overdue or due soon tasks.
 - e2e tests with Playwright.
 - Keyboard interaction support for drag-and-drop.
-- Investigate using localStorage to store the active profile id vs. cookies for
-  simple client-side state management.
+- Investigate using localStorage to store the active profile id vs. cookies. Or
+  perhaps managing the local state with TanStack Query instead of nanostores.
 - Handle edge cases with task sorting, such as reordering tasks in a smarter way
   while filtering, mostly for moves to the top of the list.
 - Implement proper race condition handling for drag-and-drop on slow network
