@@ -1,12 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { $activeProfileId, setActiveProfileId } from '@/stores/profileStore'
+import { useState } from 'react'
+import { $activeProfileId } from '@/stores/profileStore'
 import { AsyncResult } from '@core'
 import { useStore } from '@nanostores/react'
 import { useQueryClient } from '@tanstack/react-query'
-
-import { fetchWithCredentials } from '@core/api/fetchApi'
 
 import { Button } from '@/ui/catalyst/button'
 
@@ -18,6 +16,7 @@ import { useStatuses } from './statusesQuery'
 import TaskBoard from './TaskBoard'
 import { useTasks } from './tasksQuery'
 import { usePrefetchInactiveProfiles } from './usePrefetchInactiveProfiles'
+import { useSyncActiveProfileId } from './useSyncActiveProfileId'
 
 type Filters = {
   searchQuery: string
@@ -32,11 +31,12 @@ const defaultFilters: Filters = {
 }
 
 export default function App() {
+  useSyncActiveProfileId()
   const queryClient = useQueryClient()
 
-  const [filtersByProfile, setFiltersByProfile] = useState<Record<string, Filters>>({})
-
   const activeProfileId = useStore($activeProfileId)
+
+  const [filtersByProfile, setFiltersByProfile] = useState<Record<string, Filters>>({})
 
   const currentFilters = filtersByProfile[activeProfileId] ?? defaultFilters
 
@@ -61,25 +61,6 @@ export default function App() {
 
   const profilesQueryResult = useProfiles()
   usePrefetchInactiveProfiles(profilesQueryResult.data, activeProfileId)
-
-  useEffect(() => {
-    const syncProfileId = async () => {
-      if (activeProfileId === '') {
-        try {
-          const result = await fetchWithCredentials<{ profileId: string }>('/api/auth/session', {
-            method: 'POST',
-          })
-          if (result.success) {
-            setActiveProfileId(result.data.profileId)
-          }
-        } catch {}
-      } else {
-        queryClient.invalidateQueries()
-      }
-    }
-
-    syncProfileId()
-  }, [activeProfileId, queryClient])
 
   const handleSignOut = async () => {
     queryClient.clear()
