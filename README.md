@@ -234,7 +234,6 @@ pnpm start                  # Start production server
 
 # Database
 pnpm db:reset               # Reset development database and seed data
-pnpm db:push                # Push schema to production database
 
 # Code Quality
 pnpm lint                   # Run ESLint
@@ -254,6 +253,9 @@ pnpm test:start             # Start test Supabase and server together
 pnpm test:db:push           # Push schema to test database
 pnpm test:db:migrate        # Apply migrations to test database
 pnpm test:db:reset          # Reset test database
+
+# Production
+pnpm prod:prisma:migrate    # Run migrations on production database
 ```
 
 ## Next Steps

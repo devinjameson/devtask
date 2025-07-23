@@ -298,12 +298,6 @@ const getNewOrder = async ({
 
     const newOrder = generateKeyBetween(null, lowestOrderTask?.order ?? null)
 
-    console.log('DEBUG: Move to beginning', {
-      lowestOrderTask: lowestOrderTask?.order ?? null,
-      generatedOrder: newOrder,
-      destinationStatusId
-    })
-
     return newOrder
   } else {
     const afterTask = await tx.task.findUniqueOrThrow({
