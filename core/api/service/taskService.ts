@@ -87,13 +87,13 @@ export const createTask = (
     const newTask = yield* Effect.tryPromise({
       try: () =>
         prisma.$transaction(async (tx) => {
-          const lastTask = await tx.task.findFirst({
+          const firstTask = await tx.task.findFirst({
             where: { statusId: payload.statusId },
-            orderBy: { order: 'desc' },
+            orderBy: { order: 'asc' },
             select: { order: true },
           })
 
-          const order = generateKeyBetween(lastTask?.order ?? null, null)
+          const order = generateKeyBetween(null, firstTask?.order ?? null)
 
           return tx.task.create({
             data: {
