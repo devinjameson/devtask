@@ -280,10 +280,10 @@ export default function TaskBoard({
 
   const dragOverlayTask = filteredTasks.find(({ id }) => id === activeId) ?? null
 
-  const isLoading =
-    tasksQueryResult.isLoading || statusesQueryResult.isLoading || categoriesQueryResult.isLoading
+  const isReady =
+    tasksQueryResult.isSuccess && statusesQueryResult.isSuccess && categoriesQueryResult.isSuccess
 
-  if (isLoading) {
+  if (!isReady) {
     return (
       <div className="p-2">
         <TaskBoardSkeleton />
