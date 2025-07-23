@@ -273,6 +273,8 @@ for:
   simple client-side state management.
 - Handle edge cases with task sorting, such as reordering tasks in a smarter way
   while filtering, mostly for moves to the top of the list.
+- Implement proper race condition handling for drag-and-drop on slow network
+  connections. Currently, rapid drag operations can cause UI inconsistencies.
 
 ## 📄 License
 
