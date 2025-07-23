@@ -44,7 +44,7 @@ export default function TaskCard({
       {...attributes}
       {...listeners}
       className={clsx(
-        'rounded-lg bg-white shadow p-3 list-none',
+        'rounded-lg bg-white shadow p-3 list-none select-none',
         { 'opacity-0': isDragging },
         className,
       )}

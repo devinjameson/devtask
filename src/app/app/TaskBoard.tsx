@@ -94,6 +94,8 @@ export default function TaskBoard({
   const wasFiltering = wasFilteringRef.current
   const disableAnimations = isFiltering || wasFiltering
 
+  const isDragging = activeId !== null
+
   useEffect(() => {
     setTimeout(() => {
       wasFilteringRef.current = isFiltering
@@ -334,6 +336,7 @@ export default function TaskBoard({
                   setTaskDetailsTaskId(id)
                   setIsTaskDetailsModalOpen(true)
                 }}
+                isDragging={isDragging}
               />
             )
           })}
@@ -346,6 +349,7 @@ export default function TaskBoard({
                 task={dragOverlayTask}
                 disableAnimations={disableAnimations}
                 onClick={() => {}}
+                className="scale-105"
               />
             ) : null}
           </DragOverlay>,

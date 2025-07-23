@@ -1,6 +1,7 @@
 import { UniqueIdentifier, useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { PlusIcon } from '@heroicons/react/24/solid'
+import clsx from 'clsx'
 
 import { Status } from '@/generated/prisma'
 import { TaskWithRelations } from '@/app/api/tasks/route'
@@ -14,6 +15,7 @@ export default function StatusColumn({
   disableAnimations,
   onAddTask,
   onClickTask,
+  isDragging,
   dragDisabled = false,
 }: {
   status: Status
@@ -22,6 +24,7 @@ export default function StatusColumn({
   disableAnimations: boolean
   onAddTask: (statusId: string) => void
   onClickTask: (taskId: string) => void
+  isDragging: boolean
   dragDisabled?: boolean
 }) {
   const { setNodeRef } = useDroppable({
@@ -33,7 +36,10 @@ export default function StatusColumn({
     <section
       ref={setNodeRef}
       aria-labelledby={`status-${status.id}`}
-      className="bg-gray-50 rounded p-3 flex flex-col"
+      className={clsx('bg-gray-50 rounded-md p-3 flex flex-col border', {
+        'border-gray-50': !isDragging,
+        'border-blue-300 border-dashed': isDragging,
+      })}
     >
       <div className="flex justify-between items-center mb-3 border-b border-gray-200 pb-2">
         <h2
