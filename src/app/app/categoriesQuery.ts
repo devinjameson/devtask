@@ -23,5 +23,6 @@ export function useCategories({ profileId }: { profileId: string }) {
   return useQuery({
     queryKey: categoriesQueryKey(profileId),
     queryFn: () => fetchCategories(profileId),
+    enabled: profileId !== '',
   })
 }

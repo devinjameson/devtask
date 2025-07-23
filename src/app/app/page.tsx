@@ -65,12 +65,6 @@ export default function App() {
     await signOut()
   }
 
-  // const isProfileSwitching = tasksQueryResult.isFetching && tasksQueryResult.data
-  //
-  // if (isProfileSwitching) {
-  //   return <div className="flex items-center justify-center h-screen">Switching profiles...</div>
-  // }
-
   return (
     <div className="flex flex-col flex-1">
       <header className="flex items-center justify-between bg-gray-100 px-4 py-3 gap-4">

@@ -22,5 +22,6 @@ export function useTasks({ profileId }: { profileId: string }) {
   return useQuery({
     queryKey: tasksQueryKey(profileId),
     queryFn: () => fetchTasks(profileId),
+    enabled: profileId !== '',
   })
 }

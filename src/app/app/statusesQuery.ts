@@ -23,5 +23,6 @@ export function useStatuses({ profileId }: { profileId: string }) {
   return useQuery({
     queryKey: statusesQueryKey(profileId),
     queryFn: () => fetchStatuses(profileId),
+    enabled: profileId !== '',
   })
 }
