@@ -318,28 +318,30 @@ export default function TaskBoard({
         onDragCancel={handleDragCancel}
       >
         <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-6 flex-1 overflow-hidden">
-          {statuses.map((status) => {
-            const taskIds = dragTaskIdsByStatus[status.id] ?? []
+          {statuses
+            .filter((status) => selectedStatusId === null || status.id === selectedStatusId)
+            .map((status) => {
+              const taskIds = dragTaskIdsByStatus[status.id] ?? []
 
-            return (
-              <StatusColumn
-                key={status.id}
-                status={status}
-                taskIds={taskIds}
-                allTasks={filteredTasks}
-                disableAnimations={disableAnimations}
-                onAddTask={(id) => {
-                  setAddTaskStatusId(id)
-                  setIsAddTaskModalOpen(true)
-                }}
-                onClickTask={(id) => {
-                  setTaskDetailsTaskId(id)
-                  setIsTaskDetailsModalOpen(true)
-                }}
-                isDragging={isDragging}
-              />
-            )
-          })}
+              return (
+                <StatusColumn
+                  key={status.id}
+                  status={status}
+                  taskIds={taskIds}
+                  allTasks={filteredTasks}
+                  disableAnimations={disableAnimations}
+                  onAddTask={(id) => {
+                    setAddTaskStatusId(id)
+                    setIsAddTaskModalOpen(true)
+                  }}
+                  onClickTask={(id) => {
+                    setTaskDetailsTaskId(id)
+                    setIsTaskDetailsModalOpen(true)
+                  }}
+                  isDragging={isDragging}
+                />
+              )
+            })}
         </div>
 
         {createPortal(

@@ -275,6 +275,7 @@ for:
   while filtering, mostly for moves to the top of the list.
 - Implement proper race condition handling for drag-and-drop on slow network
   connections. Currently, rapid drag operations can cause UI inconsistencies.
+- Enable filtering by mulitple task stasuses and categories at once.
 
 ## 📄 License
 
