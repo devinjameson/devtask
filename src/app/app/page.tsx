@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { $activeProfileId } from '@/stores/profileStore'
-import { AsyncResult } from '@core'
 import { useStore } from '@nanostores/react'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -51,15 +50,10 @@ export default function App() {
   }
 
   const tasksQueryResult = useTasks({ profileId: activeProfileId })
-  const asyncTasks = AsyncResult.fromQueryResult(tasksQueryResult)
-
   const statusesQueryResult = useStatuses({ profileId: activeProfileId })
-  const asyncStatuses = AsyncResult.fromQueryResult(statusesQueryResult)
-
   const categoriesQueryResult = useCategories({ profileId: activeProfileId })
-  const asyncCategories = AsyncResult.fromQueryResult(categoriesQueryResult)
-
   const profilesQueryResult = useProfiles()
+
   usePrefetchInactiveProfiles(profilesQueryResult.data, activeProfileId)
 
   const handleSignOut = async () => {
@@ -81,9 +75,9 @@ export default function App() {
 
       <main className="flex-1 p-4 flex flex-col gap-4">
         <TaskBoard
-          asyncTasks={asyncTasks}
-          asyncStatuses={asyncStatuses}
-          asyncCategories={asyncCategories}
+          tasksQueryResult={tasksQueryResult}
+          statusesQueryResult={statusesQueryResult}
+          categoriesQueryResult={categoriesQueryResult}
           searchQuery={currentFilters.searchQuery}
           selectedStatusId={currentFilters.selectedStatusId}
           selectedCategoryId={currentFilters.selectedCategoryId}

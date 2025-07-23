@@ -6,7 +6,7 @@ import { Option } from 'effect'
 import { supabase } from '../supabase/client'
 
 const fetchSession = async (): Promise<
-  AsyncResult.AsyncResult<Option.Option<Session>, 'FailedToGetSession'>
+  AsyncResult.AsyncResult<Option.Option<Session>, 'FailedToFetchSession'>
 > => {
   try {
     const {
@@ -14,13 +14,13 @@ const fetchSession = async (): Promise<
     } = await supabase.auth.getSession()
     return AsyncResult.ok(Option.fromNullable(session))
   } catch {
-    return AsyncResult.err('FailedToGetSession')
+    return AsyncResult.err('FailedToFetchSession')
   }
 }
 
 export const useSession = () => {
   const [sessionState, setSessionState] = useState<
-    AsyncResult.AsyncResult<Option.Option<Session>, 'FailedToGetSession'>
+    AsyncResult.AsyncResult<Option.Option<Session>, 'FailedToFetchSession'>
   >(AsyncResult.loading())
 
   useEffect(() => {

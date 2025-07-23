@@ -1,6 +1,5 @@
 import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { $activeProfileId } from '@/stores/profileStore'
-import { AsyncResult } from '@core'
 import {
   Active,
   closestCenter,
@@ -23,6 +22,7 @@ import {
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { useStore } from '@nanostores/react'
+import { UseQueryResult } from '@tanstack/react-query'
 import { Array, pipe, Record } from 'effect'
 import { createPortal } from 'react-dom'
 
@@ -39,9 +39,9 @@ import { MoveTaskMutationParams, useMoveTaskMutation } from './useMoveTaskMutati
 type DragTaskIdsByStatus = Record<UniqueIdentifier, UniqueIdentifier[]>
 
 export default function TaskBoard({
-  asyncTasks,
-  asyncStatuses,
-  asyncCategories,
+  tasksQueryResult,
+  statusesQueryResult,
+  categoriesQueryResult,
   searchQuery,
   selectedStatusId,
   selectedCategoryId,
@@ -49,9 +49,9 @@ export default function TaskBoard({
   onStatusChange,
   onCategoryChange,
 }: {
-  asyncTasks: AsyncResult.AsyncResult<TaskWithRelations[]>
-  asyncStatuses: AsyncResult.AsyncResult<Status[]>
-  asyncCategories: AsyncResult.AsyncResult<Category[]>
+  tasksQueryResult: UseQueryResult<TaskWithRelations[]>
+  statusesQueryResult: UseQueryResult<Status[]>
+  categoriesQueryResult: UseQueryResult<Category[]>
   searchQuery: string
   selectedStatusId: string | null
   selectedCategoryId: string | null
@@ -78,12 +78,9 @@ export default function TaskBoard({
 
   const activeProfileId = useStore($activeProfileId)
 
-  const tasks = useMemo(() => AsyncResult.getOrElse(asyncTasks, () => []), [asyncTasks])
-  const statuses = useMemo(() => AsyncResult.getOrElse(asyncStatuses, () => []), [asyncStatuses])
-  const categories = useMemo(
-    () => AsyncResult.getOrElse(asyncCategories, () => []),
-    [asyncCategories],
-  )
+  const tasks = useMemo(() => tasksQueryResult.data ?? [], [tasksQueryResult.data])
+  const statuses = useMemo(() => statusesQueryResult.data ?? [], [statusesQueryResult.data])
+  const categories = useMemo(() => categoriesQueryResult.data ?? [], [categoriesQueryResult.data])
 
   const wasFilteringRef = useRef(false)
   const filteredTasks = useMemo(() => {
