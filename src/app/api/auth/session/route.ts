@@ -8,7 +8,7 @@ import { unknownExceptionToServiceException } from '@core/api/serviceException'
 import { serviceResultToNextResponse } from '@core/api/serviceResultToNextResponse'
 import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 
-export type AuthCallbackResult = ApiResult<null>
+export type AuthCallbackResult = ApiResult<{ profileId: string }>
 
 export async function POST(): Promise<NextResponse<AuthCallbackResult>> {
   return await Effect.gen(function* () {
@@ -24,11 +24,14 @@ export async function POST(): Promise<NextResponse<AuthCallbackResult>> {
     const isCurrentActiveProfileIdValid =
       currentActiveProfileId && profiles.some(({ id }) => id === currentActiveProfileId)
 
+    const activeProfileId = isCurrentActiveProfileIdValid
+      ? currentActiveProfileId
+      : Array.headNonEmpty(profiles).id
+
     if (!isCurrentActiveProfileIdValid) {
-      const firstProfileId = Array.headNonEmpty(profiles).id
-      yield* ProfileService.setActiveProfile(firstProfileId)
+      yield* ProfileService.setActiveProfile(activeProfileId)
     }
 
-    return null
+    return { profileId: activeProfileId }
   }).pipe(unknownExceptionToServiceException, serviceResultToNextResponse(), Effect.runPromise)
 }

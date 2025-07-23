@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
+import { setActiveProfileId } from '@/stores/profileStore'
 
 import { fetchWithCredentials } from '@core/api/fetchApi'
 
@@ -71,6 +72,7 @@ export default function SignUp() {
       return
     }
 
+    setActiveProfileId(sessionResult.data.profileId)
     router.push('/')
   }
 

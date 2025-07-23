@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
-import { getCookie } from '@/lib/getCookie'
+import { $activeProfileId } from '@/stores/profileStore'
+import { useStore } from '@nanostores/react'
 import { Controller, useForm } from 'react-hook-form'
 
-import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 import { mapUndefined } from '@core/lib/mapNullable'
 
 import { Category, Status } from '@/generated/prisma'
@@ -41,7 +41,7 @@ export default function TaskDetailsModal({
   statuses: Status[]
   categories: Category[]
 }) {
-  const profileId = getCookie(ACTIVE_PROFILE_COOKIE) ?? ''
+  const profileId = useStore($activeProfileId)
   const {
     register,
     handleSubmit,

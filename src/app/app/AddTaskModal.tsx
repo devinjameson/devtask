@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
-import { getCookie } from '@/lib/getCookie'
+import { $activeProfileId } from '@/stores/profileStore'
+import { useStore } from '@nanostores/react'
 import { Controller, useForm } from 'react-hook-form'
-
-import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 
 import { Category, Status } from '@/generated/prisma'
 
@@ -52,7 +51,7 @@ export default function AddTaskModal({
     }
   }, [open, statusId, reset])
 
-  const activeProfileId = getCookie(ACTIVE_PROFILE_COOKIE) ?? ''
+  const activeProfileId = useStore($activeProfileId)
 
   const createTaskMutation = useCreateTaskMutation({ profileId: activeProfileId })
 

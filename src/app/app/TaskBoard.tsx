@@ -1,5 +1,5 @@
 import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { getCookie } from '@/lib/getCookie'
+import { $activeProfileId } from '@/stores/profileStore'
 import { AsyncResult } from '@core'
 import {
   Active,
@@ -22,10 +22,9 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
+import { useStore } from '@nanostores/react'
 import { Array, pipe, Record } from 'effect'
 import { createPortal } from 'react-dom'
-
-import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 
 import { Category, Status } from '@/generated/prisma'
 import { TaskWithRelations } from '@/app/api/tasks/route'
@@ -76,6 +75,8 @@ export default function TaskBoard({
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
   const lastOverId = useRef<UniqueIdentifier | null>(null)
   const recentlyMovedToNewContainer = useRef(false)
+
+  const activeProfileId = useStore($activeProfileId)
 
   const tasks = useMemo(() => AsyncResult.getOrElse(asyncTasks, () => []), [asyncTasks])
   const statuses = useMemo(() => AsyncResult.getOrElse(asyncStatuses, () => []), [asyncStatuses])
@@ -244,8 +245,6 @@ export default function TaskBoard({
       }))
     }
 
-    const profileId = getCookie(ACTIVE_PROFILE_COOKIE) ?? ''
-
     const afterTaskId = getAfterTaskId({
       toStatusTaskIds,
       overIndex,
@@ -253,7 +252,7 @@ export default function TaskBoard({
     })
 
     const basePayload = {
-      profileId,
+      profileId: activeProfileId,
       taskId: String(active.id),
       afterTaskId: afterTaskId,
     }

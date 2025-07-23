@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { $activeProfileId } from '@/stores/profileStore'
+import { useEffect, useState } from 'react'
+import { $activeProfileId, setActiveProfileId } from '@/stores/profileStore'
 import { AsyncResult } from '@core'
 import { useStore } from '@nanostores/react'
 import { useQueryClient } from '@tanstack/react-query'
+
+import { fetchWithCredentials } from '@core/api/fetchApi'
 
 import { Button } from '@/ui/catalyst/button'
 
@@ -59,6 +61,25 @@ export default function App() {
 
   const profilesQueryResult = useProfiles()
   usePrefetchInactiveProfiles(profilesQueryResult.data, activeProfileId)
+
+  useEffect(() => {
+    const syncProfileId = async () => {
+      if (activeProfileId === '') {
+        try {
+          const result = await fetchWithCredentials<{ profileId: string }>('/api/auth/session', {
+            method: 'POST',
+          })
+          if (result.success) {
+            setActiveProfileId(result.data.profileId)
+          }
+        } catch {}
+      } else {
+        queryClient.invalidateQueries()
+      }
+    }
+
+    syncProfileId()
+  }, [activeProfileId, queryClient])
 
   const handleSignOut = async () => {
     queryClient.clear()
