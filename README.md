@@ -61,31 +61,17 @@ Supabase will provide your project credentials when it finishes starting up. Kee
 cp .env.example .env
 ```
 
-Replace the placeholder values in `.env` with your actual Supabase project credentials:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-NEXT_PUBLIC_SUPABASE_ANON_KEY=replace-with-anon-key-from-supabase-start
-
-SUPABASE_SERVICE_ROLE_KEY=replace-with-service_role-key-from-supabase-start
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
-```
+Replace the placeholder values in `.env` with your actual Supabase project
+credentials.
 
 ### 4. Database Setup
 
-Reset and seed your local development database:
+Migrate and seed your local development database:
 
 ```bash
-pnpm db:reset
+pnpm db:migrate
+pnpm db:seed
 ```
-
-This command will:
-
-- Stop any running Supabase instance
-- Wipe all local data
-- Restart Supabase
-- Apply Prisma migrations
-- Seed initial demo data
 
 ### 5. Start Development Server
 
@@ -106,7 +92,7 @@ The app includes integration tests that verify API endpoints, security, and data
 
 ### Test Database Setup
 
-First, set up a separate Supabase instance for testing.
+First, start up a separate Supabase instance for testing.
 
 Supabase will provide your project credentials when it finishes starting up. Keep these for the next step.
 
@@ -121,15 +107,8 @@ pnpm test:supabase
 cp .env.test.example .env.test
 ```
 
-Update `.env.test` with the test database credentials from Supabase.
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:64321
-NEXT_PUBLIC_SUPABASE_ANON_KEY=replace-with-anon-key-from-supabase-start
-
-SUPABASE_SERVICE_ROLE_KEY=replace-with-service_role-key-from-supabase-start
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:64322/postgres
-```
+Replace the placeholder values in `.env.test` with your actual Supabase project
+credentials.
 
 ### Running Migrations for Test Database
 
@@ -234,6 +213,8 @@ pnpm build                  # Build for production
 pnpm start                  # Start production server
 
 # Database
+pnpm db:migrate             # Run migrations
+pnpm db:seed                # Seed database
 pnpm db:reset               # Reset development database and seed data
 
 # Code Quality

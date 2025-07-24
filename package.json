@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed",
     "db:reset": "bash scripts/db-reset.sh",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
