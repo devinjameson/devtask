@@ -53,7 +53,8 @@ pnpm install
 supabase start
 ```
 
-Supabase will provide your project credentials when it finishes starting up. Keep these for the next step.
+Supabase will provide your project credentials when it finishes starting up.
+Keep these for the next step.
 
 ### 3. Environment Configuration
 
@@ -79,22 +80,25 @@ pnpm db:seed
 pnpm dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000). Create a new account or log in with:
+Visit [http://localhost:3000](http://localhost:3000). Create a new account or
+log in with:
 
-```
+```text
 Email: demo@example.com
 Password: password123
 ```
 
 ## 🧪 Testing
 
-The app includes integration tests that verify API endpoints, security, and database operations.
+The app includes integration tests that verify API endpoints, security, and
+database operations.
 
 ### Test Database Setup
 
 First, start up a separate Supabase instance for testing.
 
-Supabase will provide your project credentials when it finishes starting up. Keep these for the next step.
+Supabase will provide your project credentials when it finishes starting up.
+Keep these for the next step.
 
 ```bash
 # Start test Supabase instance
@@ -169,7 +173,7 @@ they make the code more clear and maintainable.
 - `Some(value)` - Value exists
 - `None` - Value is absent
 
-**Example: Session Management**
+#### Example: Session Management
 
 ```tsx
 // Instead of: Session | null | undefined
@@ -191,7 +195,7 @@ to reason about and less error-prone.
 
 ## 🎯 Project Structure
 
-```
+```text
 ├── src/app/                # Next.js App Router pages
 │   ├── api/                # Route Handlers
 │   └── app/                # Application UI
@@ -221,6 +225,7 @@ pnpm db:reset               # Reset development database and seed data
 pnpm lint                   # Run ESLint
 pnpm typecheck              # Run TypeScript checks
 pnpm format                 # Format code with Prettier
+pnpm format:md              # Format README with markdownlint
 pnpm prep                   # Run format, typecheck, and lint
 
 # Testing
