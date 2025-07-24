@@ -53,17 +53,22 @@ pnpm install
 supabase start
 ```
 
-Supabase will provide your project credentials when it finishes starting up.
-Keep these for the next step.
-
 ### 3. Environment Configuration
 
 ```bash
-cp .env.example .env
+pnpm env:setup
 ```
 
-Replace the placeholder values in `.env` with your actual Supabase project
-credentials.
+This will automatically copy `.env.example` to `.env` and populate it with your
+Supabase credentials.
+
+If the automated setup fails, you can manually copy and configure:
+
+```bash
+cp .env.example .env
+supabase status  # Shows your credentials
+# Copy the anon key and service_role key into .env
+```
 
 ### 4. Database Setup
 
@@ -97,9 +102,6 @@ database operations.
 
 First, start up a separate Supabase instance for testing.
 
-Supabase will provide your project credentials when it finishes starting up.
-Keep these for the next step.
-
 ```bash
 # Start test Supabase instance
 pnpm test:supabase
@@ -108,11 +110,19 @@ pnpm test:supabase
 ### Environment Configuration for Tests
 
 ```bash
-cp .env.test.example .env.test
+pnpm env:setup:test
 ```
 
-Replace the placeholder values in `.env.test` with your actual Supabase project
-credentials.
+This will automatically copy `.env.test.example` to `.env.test` and populate it
+with your test Supabase credentials.
+
+If the automated setup fails, you can manually copy and configure:
+
+```bash
+cp .env.test.example .env.test
+supabase status --workdir supabase-test  # Shows your test credentials
+# Copy the anon key and service_role key into .env.test
+```
 
 ### Running Migrations for Test Database
 
@@ -220,6 +230,10 @@ pnpm start                  # Start production server
 pnpm db:migrate             # Run migrations
 pnpm db:seed                # Seed database
 pnpm db:reset               # Reset development database and seed data
+
+# Environment Setup
+pnpm env:setup              # Setup .env with Supabase credentials
+pnpm env:setup:test         # Setup .env.test with test Supabase credentials
 
 # Code Quality
 pnpm lint                   # Run ESLint
