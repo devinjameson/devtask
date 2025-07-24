@@ -132,6 +132,9 @@ importers:
       markdownlint-cli:
         specifier: ^0.45.0
         version: 0.45.0
+      prettier:
+        specifier: ^3.6.2
+        version: 3.6.2
       prisma:
         specifier: ^6.12.0
         version: 6.12.0(typescript@5.8.3)
