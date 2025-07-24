@@ -26,7 +26,7 @@ Before getting started, you'll need to install these tools.
 
 ### Prerequisites
 
-- Node (current LTS version recommended)
+- Node
 - pnpm
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Supabase CLI](https://supabase.com/docs/guides/cli/getting-started)
