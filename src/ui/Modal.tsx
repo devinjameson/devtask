@@ -4,6 +4,8 @@ import { ReactNode } from 'react'
 import { Description, Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/solid'
 
+export const MODAL_TRANSITION_OUT_DURATION_MS = 200
+
 type ModalProps = {
   open: boolean
   onCloseAction?: () => void

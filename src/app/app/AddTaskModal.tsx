@@ -42,6 +42,7 @@ export default function AddTaskModal({
     handleSubmit,
     reset,
     control,
+    setError,
     formState: { errors },
   } = useForm<Inputs>()
 
@@ -66,6 +67,12 @@ export default function AddTaskModal({
     createTaskMutation.mutate(body, {
       onSuccess: () => {
         onCloseAction()
+      },
+      onError: () => {
+        setError('root', {
+          type: 'manual',
+          message: 'Failed to add task. Please try again.',
+        })
       },
     })
   }

@@ -26,24 +26,6 @@ export const listTasks = (
 
 export const getTask = (
   id: string,
-): Effect.Effect<TaskWithRelations, ServiceException | UnknownException> =>
-  Effect.gen(function* () {
-    const task = yield* Effect.tryPromise({
-      try: () =>
-        prisma.task.findUniqueOrThrow({
-          where: { id },
-          include: { category: true, status: true },
-        }),
-      catch: () => {
-        return { message: `Failed getTask`, status: 404 }
-      },
-    })
-
-    return task
-  })
-
-export const getTaskForProfile = (
-  id: string,
   profileId: string,
 ): Effect.Effect<TaskWithRelations, ServiceException | UnknownException> =>
   Effect.gen(function* () {
@@ -117,18 +99,8 @@ export const createTask = (
 
 export type PatchTaskPayload = {
   id: string
-  title?: string
-  statusId?: string
-  description?: string | null
-  categoryId?: string | null
-  dueDate?: string | null
-}
-
-export type PatchTaskForProfilePayload = {
-  id: string
   profileId: string
   title?: string
-  statusId?: string
   description?: string | null
   categoryId?: string | null
   dueDate?: string | null
@@ -142,32 +114,6 @@ export const patchTask = (
       try: () =>
         prisma.$transaction(async (tx) => {
           return tx.task.update({
-            where: { id: payload.id },
-            data: {
-              title: payload.title,
-              description: payload.description || null,
-              statusId: payload.statusId,
-              categoryId: payload.categoryId,
-              dueDate: mapNullable(payload.dueDate, (date) => new Date(date)),
-            },
-          })
-        }),
-      catch: () => {
-        return { message: `Failed patchTask`, status: 500 }
-      },
-    })
-
-    return patchedTask
-  })
-
-export const patchTaskForProfile = (
-  payload: PatchTaskForProfilePayload,
-): Effect.Effect<Task, ServiceException | UnknownException> =>
-  Effect.gen(function* () {
-    const patchedTask = yield* Effect.tryPromise({
-      try: () =>
-        prisma.$transaction(async (tx) => {
-          return tx.task.update({
             where: {
               id: payload.id,
               profileId: payload.profileId,
@@ -175,7 +121,6 @@ export const patchTaskForProfile = (
             data: {
               title: payload.title,
               description: payload.description || null,
-              statusId: payload.statusId,
               categoryId: payload.categoryId,
               dueDate: mapNullable(payload.dueDate, (date) => new Date(date)),
             },

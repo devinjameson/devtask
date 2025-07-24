@@ -366,7 +366,6 @@ export default function TaskBoard({
           open={isTaskDetailsModalOpen}
           onCloseAction={() => setIsTaskDetailsModalOpen(false)}
           task={taskDetailsTask ?? null}
-          statuses={statuses}
           categories={categories}
         />
       </DndContext>

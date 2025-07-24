@@ -276,6 +276,7 @@ for:
 - Implement proper race condition handling for drag-and-drop on slow network
   connections. Currently, rapid drag operations can cause UI inconsistencies.
 - Enable filtering by mulitple task stasuses and categories at once.
+- Improve API route payload validation with Effect Schema.
 
 ## 📄 License
 

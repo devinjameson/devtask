@@ -55,18 +55,18 @@ describe('GET /tasks', () => {
 
     expect(tasks.length).toBe(2)
 
-    const firstTask = tasks[0]!
-    const secondTask = tasks[1]!
+    const newestTask = tasks[0]!
+    const olderTask = tasks[1]!
 
-    expect(firstTask.title).toBe(firstBody.title)
-    expect(firstTask.description).toBe(firstBody.description)
-    expect(firstTask.statusId).toBe(firstBody.statusId)
-    expect(firstTask.categoryId).toBe(firstBody.categoryId)
+    expect(newestTask.title).toBe(secondBody.title)
+    expect(newestTask.description).toBe(secondBody.description)
+    expect(newestTask.statusId).toBe(secondBody.statusId)
+    expect(newestTask.categoryId).toBe(secondBody.categoryId)
 
-    expect(secondTask.title).toBe(secondBody.title)
-    expect(secondTask.description).toBe(secondBody.description)
-    expect(secondTask.statusId).toBe(secondBody.statusId)
-    expect(secondTask.categoryId).toBe(secondBody.categoryId)
+    expect(olderTask.title).toBe(firstBody.title)
+    expect(olderTask.description).toBe(firstBody.description)
+    expect(olderTask.statusId).toBe(firstBody.statusId)
+    expect(olderTask.categoryId).toBe(firstBody.categoryId)
   })
 
   it('returns an empty array when no tasks exist', async () => {
@@ -129,12 +129,14 @@ describe('PATCH /tasks/:id/move', () => {
     const completedStatus = profile.statuses.find(({ name }) => name === 'Completed')!
 
     const createBodies: CreateTaskBody[] = [
-      { title: 'Task A', statusId: pendingStatus.id },
-      { title: 'Task B', statusId: pendingStatus.id },
       { title: 'Task C', statusId: pendingStatus.id },
+      { title: 'Task B', statusId: pendingStatus.id },
+      { title: 'Task A', statusId: pendingStatus.id },
+
       { title: 'Task D', statusId: inProgressStatus.id },
-      { title: 'Task E', statusId: completedStatus.id },
+
       { title: 'Task F', statusId: completedStatus.id },
+      { title: 'Task E', statusId: completedStatus.id },
     ]
 
     const tasksWithIds = []

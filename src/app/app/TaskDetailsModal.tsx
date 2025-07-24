@@ -4,8 +4,9 @@ import { useStore } from '@nanostores/react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { mapUndefined } from '@core/lib/mapNullable'
+import { sleep } from '@core/lib/sleep'
 
-import { Category, Status } from '@/generated/prisma'
+import { Category } from '@/generated/prisma'
 
 import { Button } from '@/ui/catalyst/button'
 import { ErrorMessage, Field, Label } from '@/ui/catalyst/fieldset'
@@ -14,7 +15,7 @@ import { Select } from '@/ui/catalyst/select'
 import { Text } from '@/ui/catalyst/text'
 import { Textarea } from '@/ui/catalyst/textarea'
 import { DatePicker } from '@/ui/DatePicker'
-import { Modal } from '@/ui/Modal'
+import { Modal, MODAL_TRANSITION_OUT_DURATION_MS } from '@/ui/Modal'
 
 import { TaskWithRelations } from '../api/tasks/route'
 import { useDeleteTaskMutation } from './useDeleteTaskMutation'
@@ -23,7 +24,6 @@ import { usePatchTaskMutation } from './usePatchTaskMutation'
 type Inputs = {
   title: string
   description: string
-  statusId: string
   categoryId: string
   dueDate?: Date | null
 }
@@ -32,13 +32,11 @@ export default function TaskDetailsModal({
   open,
   onCloseAction,
   task,
-  statuses,
   categories,
 }: {
   open: boolean
   onCloseAction: () => void
   task: TaskWithRelations | null
-  statuses: Status[]
   categories: Category[]
 }) {
   const profileId = useStore($activeProfileId)
@@ -59,14 +57,13 @@ export default function TaskDetailsModal({
       reset({
         title: task.title,
         description: task.description ?? '',
-        statusId: task.statusId,
         categoryId: task.categoryId ?? '',
         dueDate: mapUndefined(task.dueDate ?? undefined, (date) => new Date(date)),
       })
     }
   }, [open, task, reset])
 
-  const onSubmit = async (data: Inputs) => {
+  const onSubmit = (data: Inputs) => {
     if (!task) {
       return
     }
@@ -75,36 +72,47 @@ export default function TaskDetailsModal({
       id: task.id,
       title: data.title,
       description: data.description || null,
-      statusId: data.statusId,
       categoryId: data.categoryId || null,
       dueDate: data.dueDate ? data.dueDate.toISOString() : null,
     }
 
-    try {
-      await patchTaskMutation.mutateAsync(patchData)
-      onCloseAction()
-    } catch {
-      setError('root', {
-        type: 'manual',
-        message: 'Failed to update task. Please try again.',
-      })
-    }
+    patchTaskMutation.mutate(patchData, {
+      onSuccess: () => {
+        onCloseAction()
+      },
+      onError: () => {
+        setError('root', {
+          type: 'manual',
+          message: 'Failed to update task. Please try again.',
+        })
+      },
+    })
   }
 
   const handleDelete = async () => {
-    if (!task) return
-
-    if (!confirm('Are you sure you want to delete this task?')) return
-
-    try {
-      await deleteTaskMutation.mutateAsync({ id: task.id })
-      onCloseAction()
-    } catch {
-      setError('root', {
-        type: 'manual',
-        message: 'Failed to delete task. Please try again.',
-      })
+    if (!task) {
+      return
     }
+
+    if (!confirm('Are you sure you want to delete this task?')) {
+      return
+    }
+
+    onCloseAction()
+
+    await sleep(MODAL_TRANSITION_OUT_DURATION_MS)
+
+    deleteTaskMutation.mutate(
+      { id: task.id },
+      {
+        onError: () => {
+          setError('root', {
+            type: 'manual',
+            message: 'Failed to delete task. Please try again.',
+          })
+        },
+      },
+    )
   }
 
   const isSaveDisabled = !isDirty || patchTaskMutation.isPending
@@ -133,19 +141,6 @@ export default function TaskDetailsModal({
                 return (
                   <option key={category.id} value={category.id}>
                     {category.name}
-                  </option>
-                )
-              })}
-            </Select>
-          </Field>
-
-          <Field>
-            <Label>Status</Label>
-            <Select {...register('statusId')}>
-              {statuses.map((status) => {
-                return (
-                  <option key={status.id} value={status.id}>
-                    {status.name}
                   </option>
                 )
               })}

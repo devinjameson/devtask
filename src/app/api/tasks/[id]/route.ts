@@ -20,14 +20,13 @@ export async function GET(
   return await Effect.gen(function* () {
     yield* AuthUserService.getAuthUser
     const profileId = yield* ProfileService.getActiveProfileId
-    const task = yield* TaskService.getTaskForProfile(id, profileId)
+    const task = yield* TaskService.getTask(id, profileId)
     return { task }
   }).pipe(unknownExceptionToServiceException, serviceResultToNextResponse(200), Effect.runPromise)
 }
 
 export type PatchTaskBody = {
   title?: string
-  statusId?: string
   description?: string | null
   categoryId?: string | null
   dueDate?: string | null
@@ -50,14 +49,14 @@ export async function PATCH(
   return await Effect.gen(function* () {
     yield* AuthUserService.getAuthUser
     const profileId = yield* ProfileService.getActiveProfileId
-    const { title, description, statusId, categoryId, dueDate }: PatchTaskBody =
-      yield* Effect.tryPromise(() => req.json())
-    const task = yield* TaskService.patchTaskForProfile({
+    const { title, description, categoryId, dueDate }: PatchTaskBody = yield* Effect.tryPromise(
+      () => req.json(),
+    )
+    const task = yield* TaskService.patchTask({
       id,
       profileId,
       title,
       description,
-      statusId,
       categoryId,
       dueDate,
     })
