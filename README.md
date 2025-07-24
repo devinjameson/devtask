@@ -176,7 +176,8 @@ and ensures consistent API responses across all endpoints.
 
 This project uses custom AsyncResult and Effect's Option types to explicitly
 model all possible states in the UI layer. This pattern prevents common bugs by
-making impossible states unrepresentable.
+making impossible states unrepresentable. We use these patterns sparingly where
+they make the code more clear and maintainable.
 
 **AsyncResult** handles async operations with three explicit states:
 
@@ -279,6 +280,7 @@ for:
 - Improve API route payload validation with Effect Schema.
 - Implement optimistic updates for task creation. I tried but ran into issues
   with UI jank.
+- Dark mode.
 
 ## 📄 License
 
