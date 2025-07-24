@@ -64,6 +64,7 @@ export default function AddTaskModal({
       categoryId: data.categoryId || undefined,
       dueDate: data.dueDate?.toISOString(),
     }
+
     createTaskMutation.mutate(body, {
       onSuccess: () => {
         onCloseAction()
@@ -71,7 +72,7 @@ export default function AddTaskModal({
       onError: () => {
         setError('root', {
           type: 'manual',
-          message: 'Failed to add task. Please try again.',
+          message: 'Failed to create task. Please try again.',
         })
       },
     })
@@ -128,6 +129,8 @@ export default function AddTaskModal({
             )}
           />
         </Field>
+
+        {errors.root && <ErrorMessage>{errors.root.message}</ErrorMessage>}
 
         <Button type="submit" className="w-full" disabled={createTaskMutation.isPending}>
           Add Task

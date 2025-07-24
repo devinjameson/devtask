@@ -277,6 +277,8 @@ for:
   connections. Currently, rapid drag operations can cause UI inconsistencies.
 - Enable filtering by mulitple task stasuses and categories at once.
 - Improve API route payload validation with Effect Schema.
+- Implement optimistic updates for task creation. I tried but ran into issues
+  with UI jank.
 
 ## 📄 License
 

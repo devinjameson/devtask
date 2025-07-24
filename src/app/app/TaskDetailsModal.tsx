@@ -12,7 +12,6 @@ import { Button } from '@/ui/catalyst/button'
 import { ErrorMessage, Field, Label } from '@/ui/catalyst/fieldset'
 import { Input } from '@/ui/catalyst/input'
 import { Select } from '@/ui/catalyst/select'
-import { Text } from '@/ui/catalyst/text'
 import { Textarea } from '@/ui/catalyst/textarea'
 import { DatePicker } from '@/ui/DatePicker'
 import { Modal, MODAL_TRANSITION_OUT_DURATION_MS } from '@/ui/Modal'
@@ -45,7 +44,6 @@ export default function TaskDetailsModal({
     handleSubmit,
     reset,
     control,
-    setError,
     formState: { errors, isDirty },
   } = useForm<Inputs>()
 
@@ -76,17 +74,8 @@ export default function TaskDetailsModal({
       dueDate: data.dueDate ? data.dueDate.toISOString() : null,
     }
 
-    patchTaskMutation.mutate(patchData, {
-      onSuccess: () => {
-        onCloseAction()
-      },
-      onError: () => {
-        setError('root', {
-          type: 'manual',
-          message: 'Failed to update task. Please try again.',
-        })
-      },
-    })
+    onCloseAction()
+    patchTaskMutation.mutate(patchData)
   }
 
   const handleDelete = async () => {
@@ -99,20 +88,8 @@ export default function TaskDetailsModal({
     }
 
     onCloseAction()
-
     await sleep(MODAL_TRANSITION_OUT_DURATION_MS)
-
-    deleteTaskMutation.mutate(
-      { id: task.id },
-      {
-        onError: () => {
-          setError('root', {
-            type: 'manual',
-            message: 'Failed to delete task. Please try again.',
-          })
-        },
-      },
-    )
+    deleteTaskMutation.mutate({ id: task.id })
   }
 
   const isSaveDisabled = !isDirty || patchTaskMutation.isPending
@@ -158,7 +135,7 @@ export default function TaskDetailsModal({
             />
           </Field>
 
-          {errors.root && <Text className="text-red-500">{errors.root.message}</Text>}
+          {errors.root && <ErrorMessage>{errors.root.message}</ErrorMessage>}
 
           <div className="flex gap-2">
             <Button
