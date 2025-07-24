@@ -36,7 +36,7 @@ export default function StatusColumn({
     <section
       ref={setNodeRef}
       aria-labelledby={`status-${status.id}`}
-      className={clsx('bg-gray-50 rounded-md p-3 flex flex-col border', {
+      className={clsx('bg-gray-50 rounded-lg p-3 flex flex-col border', {
         'border-gray-50': !isDragging,
         'border-blue-300 border-dashed': isDragging,
       })}
