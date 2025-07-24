@@ -49,6 +49,8 @@ pnpm install
 
 ### 2. Start Supabase
 
+Make sure Docker Desktop is running, then:
+
 ```bash
 supabase start
 ```
@@ -100,7 +102,8 @@ database operations.
 
 ### Test Database Setup
 
-First, start up a separate Supabase instance for testing.
+First, make sure Docker Desktop is running, then start up a separate Supabase
+instance for testing.
 
 ```bash
 # Start test Supabase instance
