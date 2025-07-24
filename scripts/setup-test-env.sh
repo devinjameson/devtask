@@ -23,7 +23,7 @@ fi
 
 # Get credentials from test Supabase
 echo "🔑 Extracting Supabase test credentials..."
-SUPABASE_OUTPUT=$(supabase status --workdir supabase-test -o env)
+SUPABASE_OUTPUT=$(supabase status --workdir supabase-test -o env 2>/dev/null)
 
 # Extract specific keys
 ANON_KEY=$(echo "$SUPABASE_OUTPUT" | grep '^ANON_KEY=' | cut -d'"' -f2)
