@@ -284,6 +284,7 @@ for:
 - Implement optimistic updates for task creation. I tried but ran into issues
   with UI jank.
 - Dark mode.
+- Use Suspense for loading states.
 
 ## 📄 License
 
