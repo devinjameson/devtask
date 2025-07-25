@@ -3,10 +3,10 @@ import { useQueryClient } from '@tanstack/react-query'
 
 import { Profile } from '@/generated/prisma'
 
-import { fetchCategories } from './categoriesQuery'
+import { fetchCategories } from './query/categoriesQuery'
+import { fetchStatuses } from './query/statusesQuery'
+import { fetchTasks } from './query/tasksQuery'
 import { categoriesQueryKey, statusesQueryKey, tasksQueryKey } from './queryKey'
-import { fetchStatuses } from './statusesQuery'
-import { fetchTasks } from './tasksQuery'
 
 export function usePrefetchInactiveProfiles(
   profiles: Profile[] | undefined,

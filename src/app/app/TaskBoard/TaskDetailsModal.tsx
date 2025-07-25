@@ -7,6 +7,7 @@ import { mapUndefined } from '@core/lib/mapNullable'
 import { sleep } from '@core/lib/sleep'
 
 import { Category } from '@/generated/prisma'
+import { TaskWithRelations } from '@/app/api/tasks/route'
 
 import { Button } from '@/ui/catalyst/button'
 import { ErrorMessage, Field, Label } from '@/ui/catalyst/fieldset'
@@ -16,9 +17,8 @@ import { Textarea } from '@/ui/catalyst/textarea'
 import { DatePicker } from '@/ui/DatePicker'
 import { Modal, MODAL_TRANSITION_OUT_DURATION_MS } from '@/ui/Modal'
 
-import { TaskWithRelations } from '../api/tasks/route'
-import { useDeleteTaskMutation } from './useDeleteTaskMutation'
-import { usePatchTaskMutation } from './usePatchTaskMutation'
+import { useDeleteTaskMutation } from '../mutation/useDeleteTaskMutation'
+import { usePatchTaskMutation } from '../mutation/usePatchTaskMutation'
 
 type Inputs = {
   title: string

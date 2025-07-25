@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { CreateTaskBody, CreateTaskResult } from '../api/tasks/route'
-import { tasksQueryKey } from './queryKey'
+import { CreateTaskBody, CreateTaskResult } from '@/app/api/tasks/route'
+
+import { tasksQueryKey } from '../queryKey'
 
 export const useCreateTaskMutation = ({ profileId }: { profileId: string }) => {
   const queryClient = useQueryClient()

@@ -4,7 +4,7 @@ import { fetchApi } from '@core/api/fetchApi'
 
 import { GetTasksResultData, TaskWithRelations } from '@/app/api/tasks/route'
 
-import { tasksQueryKey } from './queryKey'
+import { tasksQueryKey } from '../queryKey'
 
 export const fetchTasks = async (profileId: string): Promise<TaskWithRelations[]> => {
   const result = await fetchApi<GetTasksResultData>(() =>

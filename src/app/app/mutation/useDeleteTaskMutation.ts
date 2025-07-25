@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { DeleteTaskResult } from '../api/tasks/[id]/route'
-import { TaskWithRelations } from '../api/tasks/route'
-import { tasksQueryKey } from './queryKey'
+import { DeleteTaskResult } from '@/app/api/tasks/[id]/route'
+import { TaskWithRelations } from '@/app/api/tasks/route'
+
+import { tasksQueryKey } from '../queryKey'
 
 export const useDeleteTaskMutation = ({ profileId }: { profileId: string }) => {
   const queryClient = useQueryClient()

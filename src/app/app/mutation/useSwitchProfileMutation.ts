@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 
-import { SelectProfileBody, SelectProfileResult } from '../api/profile/select/route'
+import { SelectProfileBody, SelectProfileResult } from '@/app/api/profile/select/route'
 
 export const useSwitchProfileMutation = () => {
   return useMutation({

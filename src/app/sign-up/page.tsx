@@ -15,7 +15,7 @@ import { Input } from '@/ui/catalyst/input'
 import { Strong, Text, TextLink } from '@/ui/catalyst/text'
 import Spinner from '@/ui/Spinner'
 
-import { CreateUserBody, CreateUserResultData } from '../api/user/create/route'
+import { CreateUserBody, CreateUserResultData } from '@/app/api/user/create/route'
 
 export default function SignUp() {
   const router = useRouter()

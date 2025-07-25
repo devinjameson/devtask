@@ -5,7 +5,7 @@ import { fetchApi } from '@core/api/fetchApi'
 import { Profile } from '@/generated/prisma'
 import { GetProfilesResultData } from '@/app/api/profiles/route'
 
-import { profilesQueryKey } from './queryKey'
+import { profilesQueryKey } from '../queryKey'
 
 const fetchProfiles = async (): Promise<Profile[]> => {
   const result = await fetchApi<GetProfilesResultData>(() => fetch('/api/profiles'))

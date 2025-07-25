@@ -4,7 +4,7 @@ import { CalendarIcon } from '@heroicons/react/16/solid'
 import clsx from 'clsx'
 import { DateTime } from 'effect'
 
-import { TaskWithRelations } from '../api/tasks/route'
+import { TaskWithRelations } from '@/app/api/tasks/route'
 
 const animateLayoutChanges: AnimateLayoutChanges = (args) =>
   defaultAnimateLayoutChanges({ ...args, wasDragging: true })

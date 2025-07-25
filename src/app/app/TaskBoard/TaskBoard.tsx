@@ -29,13 +29,13 @@ import { createPortal } from 'react-dom'
 import { Category, Status } from '@/generated/prisma'
 import { TaskWithRelations } from '@/app/api/tasks/route'
 
+import { MoveTaskMutationParams, useMoveTaskMutation } from '../mutation/useMoveTaskMutation'
 import AddTaskModal from './AddTaskModal'
 import Filters from './Filters'
 import StatusColumn from './StatusColumn'
 import TaskBoardSkeleton from './TaskBoardSkeleton'
 import TaskCard from './TaskCard'
 import TaskDetailsModal from './TaskDetailsModal'
-import { MoveTaskMutationParams, useMoveTaskMutation } from './useMoveTaskMutation'
 
 type DragTaskIdsByStatus = Record<UniqueIdentifier, UniqueIdentifier[]>
 

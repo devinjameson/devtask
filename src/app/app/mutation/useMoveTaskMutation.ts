@@ -2,8 +2,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { ApiSuccess } from '@core/api/apiResult'
 
-import { MoveTaskBody, MoveTaskResult, MoveTaskResultData } from '../api/tasks/[id]/move/route'
-import { tasksQueryKey } from './queryKey'
+import { MoveTaskBody, MoveTaskResult, MoveTaskResultData } from '@/app/api/tasks/[id]/move/route'
+
+import { tasksQueryKey } from '../queryKey'
 
 export type MoveTaskMutationParams = {
   taskId: string

@@ -4,6 +4,7 @@ import { useStore } from '@nanostores/react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { Category, Status } from '@/generated/prisma'
+import { CreateTaskBody } from '@/app/api/tasks/route'
 
 import { Button } from '@/ui/catalyst/button'
 import { ErrorMessage, Field, Label } from '@/ui/catalyst/fieldset'
@@ -13,8 +14,7 @@ import { Textarea } from '@/ui/catalyst/textarea'
 import { DatePicker } from '@/ui/DatePicker'
 import { Modal } from '@/ui/Modal'
 
-import { CreateTaskBody } from '../api/tasks/route'
-import { useCreateTaskMutation } from './useCreateTaskMutation'
+import { useCreateTaskMutation } from '../mutation/useCreateTaskMutation'
 
 type Inputs = {
   title: string

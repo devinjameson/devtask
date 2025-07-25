@@ -3,9 +3,9 @@ import { useQuery } from '@tanstack/react-query'
 import { fetchApi } from '@core/api/fetchApi'
 
 import { Category } from '@/generated/prisma'
+import { GetCategoriesResultData } from '@/app/api/categories/route'
 
-import { GetCategoriesResultData } from '../api/categories/route'
-import { categoriesQueryKey } from './queryKey'
+import { categoriesQueryKey } from '../queryKey'
 
 export const fetchCategories = async (profileId: string): Promise<Category[]> => {
   const result = await fetchApi<GetCategoriesResultData>(() =>

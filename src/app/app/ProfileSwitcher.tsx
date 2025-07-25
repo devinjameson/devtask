@@ -14,8 +14,8 @@ import {
   DropdownMenu,
 } from '@/ui/catalyst/dropdown'
 
-import { useProfiles } from './profilesQuery'
-import { useSwitchProfileMutation } from './useSwitchProfileMutation'
+import { useSwitchProfileMutation } from './mutation/useSwitchProfileMutation'
+import { useProfiles } from './query/profilesQuery'
 
 export default function ProfileSwitcher() {
   const profilesQuery = useProfiles()
