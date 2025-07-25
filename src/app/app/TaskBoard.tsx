@@ -356,7 +356,7 @@ export default function TaskBoard({
 
         <AddTaskModal
           open={isAddTaskModalOpen}
-          onCloseAction={() => setIsAddTaskModalOpen(false)}
+          onClose={() => setIsAddTaskModalOpen(false)}
           statusId={addTaskStatusId}
           statuses={statuses}
           categories={categories}
@@ -364,7 +364,7 @@ export default function TaskBoard({
 
         <TaskDetailsModal
           open={isTaskDetailsModalOpen}
-          onCloseAction={() => setIsTaskDetailsModalOpen(false)}
+          onClose={() => setIsTaskDetailsModalOpen(false)}
           task={taskDetailsTask ?? null}
           categories={categories}
         />

@@ -29,12 +29,12 @@ type Inputs = {
 
 export default function TaskDetailsModal({
   open,
-  onCloseAction,
+  onClose,
   task,
   categories,
 }: {
   open: boolean
-  onCloseAction: () => void
+  onClose: () => void
   task: TaskWithRelations | null
   categories: Category[]
 }) {
@@ -74,7 +74,7 @@ export default function TaskDetailsModal({
       dueDate: data.dueDate ? data.dueDate.toISOString() : null,
     }
 
-    onCloseAction()
+    onClose()
     patchTaskMutation.mutate(patchData)
   }
 
@@ -87,7 +87,7 @@ export default function TaskDetailsModal({
       return
     }
 
-    onCloseAction()
+    onClose()
     await sleep(MODAL_TRANSITION_OUT_DURATION_MS)
     deleteTaskMutation.mutate({ id: task.id })
   }
@@ -96,7 +96,7 @@ export default function TaskDetailsModal({
   const isDeleteDisabled = deleteTaskMutation.isPending
 
   return (
-    <Modal open={open} onCloseAction={onCloseAction} title={task?.title || 'Task Details'}>
+    <Modal open={open} onClose={onClose} title={task?.title || 'Task Details'}>
       {task ? (
         <form onSubmit={handleSubmit(onSubmit)} className="grid w-full grid-cols-1 gap-4">
           <Field>

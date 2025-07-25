@@ -26,13 +26,13 @@ type Inputs = {
 
 export default function AddTaskModal({
   open,
-  onCloseAction,
+  onClose,
   statusId,
   statuses,
   categories,
 }: {
   open: boolean
-  onCloseAction: () => void
+  onClose: () => void
   statusId: string | null
   statuses: Status[]
   categories: Category[]
@@ -67,7 +67,7 @@ export default function AddTaskModal({
 
     createTaskMutation.mutate(body, {
       onSuccess: () => {
-        onCloseAction()
+        onClose()
       },
       onError: () => {
         setError('root', {
@@ -79,7 +79,7 @@ export default function AddTaskModal({
   }
 
   return (
-    <Modal open={open} onCloseAction={onCloseAction} title="Add a task">
+    <Modal open={open} onClose={onClose} title="Add a task">
       <form onSubmit={handleSubmit(onSubmit)} className="grid w-full grid-cols-1 gap-4">
         <Field>
           <Label>Title</Label>

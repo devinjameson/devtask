@@ -8,15 +8,15 @@ export const MODAL_TRANSITION_OUT_DURATION_MS = 200
 
 type ModalProps = {
   open: boolean
-  onCloseAction?: () => void
+  onClose?: () => void
   title: string
   description?: string
   children: ReactNode
 }
 
-export function Modal({ open, onCloseAction, title, description, children }: ModalProps) {
+export function Modal({ open, onClose, title, description, children }: ModalProps) {
   return (
-    <Dialog open={open} onClose={() => onCloseAction?.()} className="relative z-50">
+    <Dialog open={open} onClose={() => onClose?.()} className="relative z-50">
       {/* Backdrop */}
       <DialogBackdrop
         transition
@@ -31,7 +31,7 @@ export function Modal({ open, onCloseAction, title, description, children }: Mod
         >
           {/* Close button */}
           <button
-            onClick={onCloseAction}
+            onClick={onClose}
             aria-label="Close"
             className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition"
           >
