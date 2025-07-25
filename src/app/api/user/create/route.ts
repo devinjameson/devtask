@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Effect } from 'effect'
 
+import { unknownExceptionToApiException } from '@core/api/apiException'
 import { ApiResult } from '@core/api/apiResult'
 import { AuthUserService, UserService } from '@core/api/service'
-import { unknownExceptionToServiceException } from '@core/api/serviceException'
-import { serviceResultToNextResponse } from '@core/api/serviceResultToNextResponse'
+import { toApiResult } from '@core/api/toApiResult'
 
 export type CreateUserBody = {
   firstName: string
@@ -25,5 +25,5 @@ export async function POST(req: NextRequest): Promise<NextResponse<CreateUserRes
       lastName,
     })
     return { user }
-  }).pipe(unknownExceptionToServiceException, serviceResultToNextResponse(201), Effect.runPromise)
+  }).pipe(unknownExceptionToApiException, toApiResult(201), Effect.runPromise)
 }

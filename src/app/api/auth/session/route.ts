@@ -2,10 +2,10 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { Array, Effect } from 'effect'
 
+import { ApiException, unknownExceptionToApiException } from '@core/api/apiException'
 import { ApiResult } from '@core/api/apiResult'
 import { AuthUserService, ProfileService } from '@core/api/service'
-import { unknownExceptionToServiceException } from '@core/api/serviceException'
-import { serviceResultToNextResponse } from '@core/api/serviceResultToNextResponse'
+import { toApiResult } from '@core/api/toApiResult'
 import { ACTIVE_PROFILE_COOKIE } from '@core/constants'
 
 export type AuthCallbackResult = ApiResult<{ profileId: string }>
@@ -16,7 +16,7 @@ export async function POST(): Promise<NextResponse<AuthCallbackResult>> {
     const profiles = yield* ProfileService.listProfiles(user.id)
 
     if (!Array.isNonEmptyArray(profiles)) {
-      return yield* Effect.fail({ message: 'No profiles found', status: 400 })
+      return yield* new ApiException({ message: 'No profiles found', status: 400 })
     }
 
     const cookieStore = yield* Effect.tryPromise(() => cookies())
@@ -33,5 +33,5 @@ export async function POST(): Promise<NextResponse<AuthCallbackResult>> {
     }
 
     return { profileId: activeProfileId }
-  }).pipe(unknownExceptionToServiceException, serviceResultToNextResponse(), Effect.runPromise)
+  }).pipe(unknownExceptionToApiException, toApiResult(), Effect.runPromise)
 }

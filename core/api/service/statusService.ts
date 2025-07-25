@@ -5,11 +5,11 @@ import { prisma } from '@core/prisma'
 
 import { Status } from '@/generated/prisma'
 
-import { ServiceException } from '../serviceException'
+import { ApiException } from '../apiException'
 
 export const listStatuses = (
   profileId: string,
-): Effect.Effect<Status[], ServiceException | UnknownException> =>
+): Effect.Effect<Status[], ApiException | UnknownException> =>
   Effect.gen(function* () {
     const statuses = yield* Effect.tryPromise(() =>
       prisma.status.findMany({

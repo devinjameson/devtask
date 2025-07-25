@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Effect } from 'effect'
 
+import { unknownExceptionToApiException } from '@core/api/apiException'
 import { ApiResult } from '@core/api/apiResult'
 import { AuthUserService, ProfileService } from '@core/api/service'
-import { unknownExceptionToServiceException } from '@core/api/serviceException'
-import { serviceResultToNextResponse } from '@core/api/serviceResultToNextResponse'
+import { toApiResult } from '@core/api/toApiResult'
 
 export type SelectProfileBody = {
   profileId: string
@@ -18,5 +18,5 @@ export async function POST(req: NextRequest): Promise<NextResponse<SelectProfile
     const { profileId }: SelectProfileBody = yield* Effect.tryPromise(() => req.json())
     yield* ProfileService.setActiveProfile(profileId)
     return null
-  }).pipe(unknownExceptionToServiceException, serviceResultToNextResponse(), Effect.runPromise)
+  }).pipe(unknownExceptionToApiException, toApiResult(), Effect.runPromise)
 }

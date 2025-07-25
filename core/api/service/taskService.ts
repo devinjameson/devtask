@@ -7,11 +7,11 @@ import { prisma } from '@core/prisma'
 
 import { Prisma, Task } from '@/generated/prisma'
 
-import { ServiceException } from '../serviceException'
+import { ApiException } from '../apiException'
 
 export const listTasks = (
   profileId: string,
-): Effect.Effect<TaskWithRelations[], ServiceException | UnknownException> =>
+): Effect.Effect<TaskWithRelations[], ApiException | UnknownException> =>
   Effect.gen(function* () {
     const tasks = yield* Effect.tryPromise(() =>
       prisma.task.findMany({
@@ -27,7 +27,7 @@ export const listTasks = (
 export const getTask = (
   id: string,
   profileId: string,
-): Effect.Effect<TaskWithRelations, ServiceException | UnknownException> =>
+): Effect.Effect<TaskWithRelations, ApiException | UnknownException> =>
   Effect.gen(function* () {
     const task = yield* Effect.tryPromise({
       try: () =>
@@ -39,7 +39,7 @@ export const getTask = (
           include: { category: true, status: true },
         }),
       catch: () => {
-        return { message: `Failed getTask`, status: 404 }
+        return new ApiException({ message: `Failed getTask`, status: 404 })
       },
     })
 
@@ -64,7 +64,7 @@ export type CreateTaskPayload = {
 
 export const createTask = (
   payload: CreateTaskPayload,
-): Effect.Effect<Task, ServiceException | UnknownException> =>
+): Effect.Effect<Task, ApiException | UnknownException> =>
   Effect.gen(function* () {
     const newTask = yield* Effect.tryPromise({
       try: () =>
@@ -90,7 +90,7 @@ export const createTask = (
           })
         }),
       catch: () => {
-        return { message: `Failed createTask`, status: 500 }
+        return new ApiException({ message: `Failed createTask`, status: 500 })
       },
     })
 
@@ -108,7 +108,7 @@ export type PatchTaskPayload = {
 
 export const patchTask = (
   payload: PatchTaskPayload,
-): Effect.Effect<Task, ServiceException | UnknownException> =>
+): Effect.Effect<Task, ApiException | UnknownException> =>
   Effect.gen(function* () {
     const patchedTask = yield* Effect.tryPromise({
       try: () =>
@@ -127,14 +127,14 @@ export const patchTask = (
           })
         }),
       catch: () => {
-        return { message: `Failed patchTask`, status: 404 }
+        return new ApiException({ message: `Failed patchTask`, status: 404 })
       },
     })
 
     return patchedTask
   })
 
-export const deleteTask = (id: string): Effect.Effect<Task, ServiceException | UnknownException> =>
+export const deleteTask = (id: string): Effect.Effect<Task, ApiException | UnknownException> =>
   Effect.gen(function* () {
     const deletedTask = yield* Effect.tryPromise({
       try: () =>
@@ -142,7 +142,7 @@ export const deleteTask = (id: string): Effect.Effect<Task, ServiceException | U
           where: { id },
         }),
       catch: () => {
-        return { message: `Failed deleteTask`, status: 404 }
+        return new ApiException({ message: `Failed deleteTask`, status: 404 })
       },
     })
 
@@ -152,7 +152,7 @@ export const deleteTask = (id: string): Effect.Effect<Task, ServiceException | U
 export const deleteTaskForProfile = (
   id: string,
   profileId: string,
-): Effect.Effect<Task, ServiceException | UnknownException> =>
+): Effect.Effect<Task, ApiException | UnknownException> =>
   Effect.gen(function* () {
     const deletedTask = yield* Effect.tryPromise({
       try: () =>
@@ -163,7 +163,7 @@ export const deleteTaskForProfile = (
           },
         }),
       catch: () => {
-        return { message: `Failed deleteTask`, status: 404 }
+        return new ApiException({ message: `Failed deleteTask`, status: 404 })
       },
     })
 
@@ -178,7 +178,7 @@ type MoveTaskPayload = {
 
 export const moveTask = (
   payload: MoveTaskPayload,
-): Effect.Effect<Task, ServiceException | UnknownException> =>
+): Effect.Effect<Task, ApiException | UnknownException> =>
   Effect.gen(function* () {
     const updatedTask = yield* Effect.tryPromise({
       try: () =>
@@ -211,10 +211,10 @@ export const moveTask = (
           })
         }),
       catch: (error) => {
-        return {
+        return new ApiException({
           message: `Failed moveTask: ${error}`,
           status: 500,
-        }
+        })
       },
     })
 

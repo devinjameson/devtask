@@ -7,7 +7,7 @@ import { prisma } from '@core/prisma'
 
 import { Prisma } from '@/generated/prisma'
 
-import { ServiceException } from '../serviceException'
+import { ApiException } from '../apiException'
 
 export type UserWithProfiles = Prisma.UserGetPayload<{
   include: {
@@ -24,7 +24,7 @@ export type CreateUserPayload = {
 
 export const createUser = (
   payload: CreateUserPayload,
-): Effect.Effect<UserWithProfiles, ServiceException | UnknownException> =>
+): Effect.Effect<UserWithProfiles, ApiException | UnknownException> =>
   Effect.gen(function* () {
     const { id, email, firstName, lastName } = payload
 
@@ -35,7 +35,7 @@ export const createUser = (
     )
 
     if (existing) {
-      return yield* Effect.fail({ message: 'User already exists', status: 400 })
+      return yield* new ApiException({ message: 'User already exists', status: 400 })
     }
 
     yield* Effect.tryPromise(() =>
@@ -169,7 +169,7 @@ export const createUser = (
     )
 
     if (!userWithProfiles) {
-      return yield* Effect.fail({ message: 'Failed to create user', status: 500 })
+      return yield* new ApiException({ message: 'Failed to create user', status: 500 })
     }
 
     return userWithProfiles

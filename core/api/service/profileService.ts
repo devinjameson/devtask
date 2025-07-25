@@ -7,15 +7,15 @@ import { prisma } from '@core/prisma'
 
 import { Profile } from '@/generated/prisma'
 
-import { ServiceException } from '../serviceException'
+import { ApiException } from '../apiException'
 
-export const getActiveProfileId: Effect.Effect<string, ServiceException | UnknownException> =
+export const getActiveProfileId: Effect.Effect<string, ApiException | UnknownException> =
   Effect.gen(function* () {
     const cookieStore = yield* Effect.tryPromise(() => cookies())
     const profileId = cookieStore.get(ACTIVE_PROFILE_COOKIE)?.value
 
     if (!profileId) {
-      return yield* Effect.fail({ message: 'No active profile selected', status: 400 })
+      return yield* new ApiException({ message: 'No active profile selected', status: 400 })
     }
 
     return profileId
@@ -23,7 +23,7 @@ export const getActiveProfileId: Effect.Effect<string, ServiceException | Unknow
 
 export const setActiveProfile = (
   profileId: string,
-): Effect.Effect<void, ServiceException | UnknownException> =>
+): Effect.Effect<void, ApiException | UnknownException> =>
   Effect.gen(function* () {
     const cookieStore = yield* Effect.tryPromise(() => cookies())
     cookieStore.set(ACTIVE_PROFILE_COOKIE, profileId, {
@@ -35,7 +35,7 @@ export const setActiveProfile = (
 
 export const listProfiles = (
   userId: string,
-): Effect.Effect<Profile[], ServiceException | UnknownException> =>
+): Effect.Effect<Profile[], ApiException | UnknownException> =>
   Effect.gen(function* () {
     const profiles = yield* Effect.tryPromise(() =>
       prisma.profile.findMany({

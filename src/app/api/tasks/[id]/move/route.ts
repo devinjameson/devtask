@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 import { Effect } from 'effect'
 
+import { unknownExceptionToApiException } from '@core/api/apiException'
 import { ApiResult } from '@core/api/apiResult'
 import { AuthUserService, TaskService } from '@core/api/service'
-import { unknownExceptionToServiceException } from '@core/api/serviceException'
-import { serviceResultToNextResponse } from '@core/api/serviceResultToNextResponse'
+import { toApiResult } from '@core/api/toApiResult'
 
 import { Task } from '@/generated/prisma'
 
@@ -35,5 +35,5 @@ export async function PATCH(
       destinationStatusId,
     })
     return { task }
-  }).pipe(unknownExceptionToServiceException, serviceResultToNextResponse(200), Effect.runPromise)
+  }).pipe(unknownExceptionToApiException, toApiResult(200), Effect.runPromise)
 }

@@ -3,10 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import { Effect } from 'effect'
 import { UnknownException } from 'effect/Cause'
 
+import { ApiException } from '../apiException'
 import { AuthUser } from '../authUser'
-import { ServiceException } from '../serviceException'
 
-export const getAuthUser: Effect.Effect<AuthUser, ServiceException | UnknownException> = Effect.gen(
+export const getAuthUser: Effect.Effect<AuthUser, ApiException | UnknownException> = Effect.gen(
   function* () {
     const cookieStore = yield* Effect.tryPromise(() => cookies())
     const supabase = createClient(cookieStore)
@@ -17,7 +17,7 @@ export const getAuthUser: Effect.Effect<AuthUser, ServiceException | UnknownExce
     } = yield* Effect.tryPromise(() => supabase.auth.getUser())
 
     if (error || !user) {
-      return yield* Effect.fail({ message: 'Unauthorized', status: 401 })
+      return yield* new ApiException({ message: 'Unauthorized', status: 401 })
     }
 
     return user

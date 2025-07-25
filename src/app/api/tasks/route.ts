@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
 import { Effect } from 'effect'
 
+import { unknownExceptionToApiException } from '@core/api/apiException'
 import { ApiResult } from '@core/api/apiResult'
+import { getRequiredProfileId } from '@core/api/request'
 import { AuthUserService, TaskService } from '@core/api/service'
-import { unknownExceptionToServiceException } from '@core/api/serviceException'
-import { serviceResultToNextResponse } from '@core/api/serviceResultToNextResponse'
+import { toApiResult } from '@core/api/toApiResult'
 
 import { Task } from '@/generated/prisma'
 
@@ -15,14 +16,10 @@ export type GetTasksResult = ApiResult<GetTasksResultData>
 export async function GET(req: Request): Promise<NextResponse<GetTasksResult>> {
   return await Effect.gen(function* () {
     yield* AuthUserService.getAuthUser
-    const url = new URL(req.url)
-    const profileId = url.searchParams.get('profileId')
-    if (!profileId) {
-      throw new Error('Profile ID is required')
-    }
+    const profileId = yield* getRequiredProfileId(req)
     const tasks = yield* TaskService.listTasks(profileId)
     return { tasks }
-  }).pipe(unknownExceptionToServiceException, serviceResultToNextResponse(), Effect.runPromise)
+  }).pipe(unknownExceptionToApiException, toApiResult(), Effect.runPromise)
 }
 
 export type CreateTaskBody = {
@@ -39,11 +36,7 @@ export type CreateTaskResult = ApiResult<CreateTaskResultData>
 export async function POST(req: Request): Promise<NextResponse<CreateTaskResult>> {
   return await Effect.gen(function* () {
     yield* AuthUserService.getAuthUser
-    const url = new URL(req.url)
-    const profileId = url.searchParams.get('profileId')
-    if (!profileId) {
-      throw new Error('Profile ID is required')
-    }
+    const profileId = yield* getRequiredProfileId(req)
     const { title, description, statusId, categoryId, dueDate }: CreateTaskBody =
       yield* Effect.tryPromise(() => req.json())
     const task = yield* TaskService.createTask({
@@ -55,5 +48,5 @@ export async function POST(req: Request): Promise<NextResponse<CreateTaskResult>
       profileId,
     })
     return { task }
-  }).pipe(unknownExceptionToServiceException, serviceResultToNextResponse(201), Effect.runPromise)
+  }).pipe(unknownExceptionToApiException, toApiResult(201), Effect.runPromise)
 }
